@@ -1,5 +1,6 @@
 #pragma once
 #include "ContentIndex.h"
+#include "Compat.h"
 #include "IndexWAL.h" // for IndexWAL::crc32()
 #include "Concurrency.h"
 #include <string>

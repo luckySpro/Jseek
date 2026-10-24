@@ -1,4 +1,5 @@
 #include "IndexPersistence.h"
+#include "Compat.h"
 #include "Logger.h"
 #include <cerrno>
 #include <cstring>
@@ -186,7 +187,7 @@ void IndexPersistence::flush(const IndexMetadata& metadata, bool force) {
     }
 
     // 4. Rename new WAL to replace old
-    if (rename(newWalPath.c_str(), walPath_.c_str()) != 0) {
+    if (me::replaceFile(newWalPath.c_str(), walPath_.c_str()) != 0) {
         LOG_ERROR("IndexPersistence", "Failed to rename WAL: " << newWalPath
                   << " -> " << walPath_ << " (errno=" << errno << ": " << strerror(errno) << ")");
     } else {
@@ -246,7 +247,7 @@ void IndexPersistence::fullCompact(const IndexMetadata& metadata) {
     }
 
     // 5. Rename WAL
-    if (rename(newWalPath.c_str(), walPath_.c_str()) != 0) {
+    if (me::replaceFile(newWalPath.c_str(), walPath_.c_str()) != 0) {
         LOG_ERROR("IndexPersistence", "Failed to rename WAL: " << newWalPath
                   << " -> " << walPath_);
     } else {

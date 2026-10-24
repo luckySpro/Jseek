@@ -132,7 +132,7 @@ void DirectoryScanner::scanDirectory(const std::string& dirPath, char*, int thre
 #else
 void DirectoryScanner::scanDirectory(const std::string& dirPath, char*, int threadIndex) {
     std::error_code ec;
-    fs::directory_iterator it(fs::u8path(dirPath), fs::directory_options::skip_permission_denied, ec);
+    fs::directory_iterator it(fs::path(std::u8string(dirPath.begin(), dirPath.end())), fs::directory_options::skip_permission_denied, ec);
     if (ec) {
         stats_.errorCount.fetch_add(1, std::memory_order_relaxed);
         return;
@@ -141,7 +141,8 @@ void DirectoryScanner::scanDirectory(const std::string& dirPath, char*, int thre
     for (; it != fs::directory_iterator(); it.increment(ec)) {
         if (ec || cancelled_.load(std::memory_order_relaxed)) break;
         const fs::directory_entry& e = *it;
-        std::string name = e.path().filename().u8string();
+        auto u8name = e.path().filename().u8string();
+        std::string name(u8name.begin(), u8name.end());
         if (name.empty()) continue;
         std::string child = joinPath(dirPath, name);
         std::error_code ec2;

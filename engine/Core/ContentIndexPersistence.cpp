@@ -1,6 +1,6 @@
 #include "ContentIndexPersistence.h"
 #include "Logger.h"
-#include <unistd.h>
+#include "Compat.h"
 #include <cerrno>
 #include <cstring>
 
@@ -363,7 +363,7 @@ void ContentIndexPersistence::compact(bool force) {
     //    This avoids the self-propagating failure chain: we never call
     //    closeAndDelete() on oldWal, so there's no risk of unlinking the
     //    new WAL's file.
-    if (rename(newWalPath.c_str(), walPath_.c_str()) != 0) {
+    if (me::replaceFile(newWalPath.c_str(), walPath_.c_str()) != 0) {
         LOG_ERROR("ContentIndexPersistence", "Failed to rename WAL: " << newWalPath
                   << " -> " << walPath_ << " (errno=" << errno << ": " << strerror(errno) << ")");
     } else {

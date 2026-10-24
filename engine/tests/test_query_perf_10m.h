@@ -246,7 +246,7 @@ static void runLargeScalePerfBenchmarks() {
 
     std::vector<BenchResult> allResults;
     auto run = [&](const std::string& label, const std::string& keyword,
-                   uint32_t maxResults, int runs = RUNS) {
+                   uint32_t maxResults, int runs = 10 /* = RUNS; GCC rejects locals in default args */) {
         auto r = benchmark(label, keyword, maxResults, runs);
         printRow(r);
         allResults.push_back(r);

@@ -8,7 +8,7 @@
 #include <cstring>
 #include <atomic>
 #include <thread>
-#include <unistd.h>
+#include "Compat.h"
 
 
 // --- Magic and version for binary persistence ---
@@ -641,7 +641,7 @@ bool ContentIndex::saveToFile(const std::string& path) const {
         return false;
     }
 
-    if (rename(tmpPath.c_str(), path.c_str()) != 0) {
+    if (me::replaceFile(tmpPath.c_str(), path.c_str()) != 0) {
         remove(tmpPath.c_str());
         return false;
     }

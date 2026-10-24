@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
-#include <unistd.h>
+#include "Compat.h"
 #include <sys/stat.h>
 
 FlatIndexWriter::FlatIndexWriter(const std::string& path) : path_(path) {}
@@ -318,7 +318,7 @@ bool FlatIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& met
     fsync(fileno(f));
     fclose(f);
 
-    if (rename(tmpPath.c_str(), path_.c_str()) != 0) {
+    if (me::replaceFile(tmpPath.c_str(), path_.c_str()) != 0) {
         remove(tmpPath.c_str());
         return false;
     }

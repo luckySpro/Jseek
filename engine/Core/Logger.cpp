@@ -1,4 +1,5 @@
 #include "Logger.h"
+#include "Compat.h"
 #include <ctime>
 #include <sys/stat.h>
 #include <filesystem>
@@ -108,7 +109,7 @@ void Logger::rotateIfNeeded() {
         std::string src = logDir_ + "/maceverything.log" +
                           (i == 1 ? "" : "." + std::to_string(i - 1));
         std::string dst = logDir_ + "/maceverything.log." + std::to_string(i);
-        std::rename(src.c_str(), dst.c_str());
+        me::replaceFile(src.c_str(), dst.c_str());
     }
 
     file_ = fopen(logFilePath_.c_str(), "w");

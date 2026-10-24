@@ -17,3 +17,4 @@
 | 2026-10-24 20:33 | M1 | 去 GCD/CoreFoundation：新增 Concurrency.h（parallelFor、SerialQueue、RepeatingTimer）与可移植 Unicode 小写；新增 Part 77 测试（本地 ASan/UBSan/TSan 通过，并修复一处等待中的悬垂引用） | 确认 macOS 上 11,962+17 个测试仍全过；然后加 CMake，在 Linux/Windows 编译并跑引擎测试 |
 | 2026-10-24 20:36 | M1 | 可移植扫描器（Linux 用 POSIX，Windows 用 std::filesystem）；Mac 专属模块与测试条件编译；测试辅助函数跨平台；F_NOCACHE 条件化；CMake 构建；CI 新增 engine-linux 与 engine-windows（后者暂不阻塞） | 根据 CI 修复 Linux 编译/测试；收集 Windows 错误清单 |
 | 2026-10-24 20:41 | M1 | 修复：Makefile 加 -I.；GCC 不接受局部变量作默认参数（改 static constexpr）；修正 Windows 报错过滤规则 | 确认 macOS/Linux 引擎测试通过；拿到 Windows 错误清单 |
+| 2026-10-24 20:47 | M1 | Windows 兼容层 Compat.h/.cpp（unistd、fsync、access、localtime_r；replaceFile 用 MoveFileExW 保证原子替换）；修复 u8string、GCC 默认参数；放宽定时器测试 | 看 macOS/Linux 是否全绿；继续处理 Windows 编译错误 |

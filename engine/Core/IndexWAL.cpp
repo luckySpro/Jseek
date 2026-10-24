@@ -1,7 +1,7 @@
 #include "IndexWAL.h"
 #include "Logger.h"
 #include <cstring>
-#include <unistd.h>
+#include "Compat.h"
 #include <array>
 
 // ── CRC32 (ISO 3309 / zlib polynomial 0xEDB88320) ──

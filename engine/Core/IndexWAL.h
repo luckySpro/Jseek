@@ -1,5 +1,6 @@
 #pragma once
 #include "FileRecord.h"
+#include "Compat.h"
 #include <string>
 #include <vector>
 #include <mutex>

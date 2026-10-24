@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fcntl.h>
-#include <unistd.h>
+#include "Compat.h"
 #include <iostream>
 #include <algorithm>
 
@@ -252,7 +252,7 @@ bool PagedIndexWriter::writePtable(const IndexMetadata& meta, uint32_t totalReco
     fsync(fileno(f));
     fclose(f);
 
-    if (rename(tmpPath.c_str(), ptablePath_.c_str()) != 0) {
+    if (me::replaceFile(tmpPath.c_str(), ptablePath_.c_str()) != 0) {
         remove(tmpPath.c_str());
         return false;
     }
@@ -554,7 +554,7 @@ bool PagedIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& me
         return false;
     }
 
-    if (rename(tmpPages.c_str(), pagesPath_.c_str()) != 0) {
+    if (me::replaceFile(tmpPages.c_str(), pagesPath_.c_str()) != 0) {
         remove(tmpPages.c_str());
         return false;
     }

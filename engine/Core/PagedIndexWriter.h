@@ -1,5 +1,6 @@
 #pragma once
 #include "SearchEngine.h"
+#include "Compat.h"
 #include "IndexWAL.h"  // for IndexWAL::crc32()
 #include <string>
 #include <vector>

@@ -4,7 +4,7 @@
 #include <ctime>
 #include <iostream>
 #include <fcntl.h>
-#include <unistd.h>
+#include "Compat.h"
 
 // --- Persistence format constants ---
 
@@ -132,7 +132,7 @@ bool SearchEngine::saveToFile(const std::string& filePath, const IndexMetadata& 
     fsync(fileno(f));
     fclose(f);
 
-    if (rename(tmpPath.c_str(), filePath.c_str()) != 0) {
+    if (me::replaceFile(tmpPath.c_str(), filePath.c_str()) != 0) {
         remove(tmpPath.c_str());
         return false;
     }

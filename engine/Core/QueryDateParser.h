@@ -5,6 +5,7 @@
 #include <cctype>
 #include <algorithm>
 #include "QueryAST.h"
+#include "Compat.h"
 
 /// Parse date filter arguments (dm:, dc:, da:) into structured time ranges.
 /// Fills node.op, node.numVal1 (start epoch), node.numVal2 (end epoch).
