@@ -314,7 +314,7 @@ static void runQueryDateFilterTests() {
         struct utimbuf ut;
         ut.actime = old;
         ut.modtime = old;
-        utime((tmpDir / "older.cpp").c_str(), &ut);
+        utime((tmpDir / "older.cpp").string().c_str(), &ut);
     }
 
     // Also create a file backdated to yesterday
@@ -329,7 +329,7 @@ static void runQueryDateFilterTests() {
         struct utimbuf ut;
         ut.actime = yday;
         ut.modtime = yday;
-        utime((tmpDir / "yesterday_file.txt").c_str(), &ut);
+        utime((tmpDir / "yesterday_file.txt").string().c_str(), &ut);
     }
 
     // Scan into SearchEngine

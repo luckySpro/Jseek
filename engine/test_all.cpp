@@ -268,12 +268,11 @@ int main(int argc, char* argv[]) {
 
     // Validate root path if scan test is selected
     if (selectedParts.count("1")) {
-        int testfd = open(rootPath.c_str(), O_RDONLY | O_DIRECTORY);
-        if (testfd < 0) {
-            std::cerr << "Error: cannot open '" << rootPath << "': " << strerror(errno) << "\n";
+        std::error_code dirEc;
+        if (!fs::is_directory(rootPath, dirEc)) {
+            std::cerr << "Error: cannot open '" << rootPath << "': not a directory\n";
             return 1;
         }
-        close(testfd);
     }
 
     std::cout << "\n";

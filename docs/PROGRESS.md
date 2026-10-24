@@ -21,3 +21,4 @@
 | 2026-10-24 20:52 | M1 | Linux 引擎测试全绿（11,910 通过）；Mac 定时器测试已过；新增 Builtins.h（MSVC 的 ctz/prefetch 与 memmem） | 继续处理 Windows 编译错误；复查 Mac 上 batchRescanPrefix 性能测试是否为波动 |
 | 2026-10-24 20:57 | M1 | macOS 11,979 / Linux 11,910 全部通过；Windows 引擎库已能编译。修复 Windows 测试代码：ftruncate/truncate 兼容、fs::path 转字符串、守护进程测试（fork）仅限 POSIX | 继续 Windows：编译通过后看测试结果 |
 | 2026-10-24 21:02 | M1 | Windows：utime/popen/pclose 兼容别名 | 看 Windows 编译是否通过、测试结果如何 |
+| 2026-10-24 21:07 | M1 | Windows：根目录检查改用 std::filesystem；utime 路径转 string | 看 Windows 编译与测试结果 |
