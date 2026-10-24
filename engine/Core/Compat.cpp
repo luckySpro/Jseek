@@ -11,7 +11,9 @@
 #include <cerrno>
 #include <fcntl.h>
 #include <io.h>
+#include <cstring>
 #include <string>
+#include <vector>
 
 namespace {
 std::wstring widen(const char* utf8) {
@@ -76,7 +78,27 @@ FILE* me::fopenShared(const char* path, const char* mode) {
 }
 
 int me::replaceFile(const char* from, const char* to) {
-    return MoveFileExW(widen(from).c_str(), widen(to).c_str(),
+    const std::wstring wfrom = widen(from), wto = widen(to);
+    // Preferred: POSIX rename semantics (Windows 10 1709+). Replaces the target even while
+    // other handles have it open (they were opened with FILE_SHARE_DELETE by fopenShared).
+    HANDLE h = CreateFileW(wfrom.c_str(), DELETE | SYNCHRONIZE,
+                           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr,
+                           OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h != INVALID_HANDLE_VALUE) {
+        const size_t nameBytes = wto.size() * sizeof(wchar_t);
+        std::vector<unsigned char> buf(sizeof(FILE_RENAME_INFO) + nameBytes);
+        auto* info = reinterpret_cast<FILE_RENAME_INFO*>(buf.data());
+        info->Flags = 0x1 /*FILE_RENAME_FLAG_REPLACE_IF_EXISTS*/ | 0x2 /*FILE_RENAME_FLAG_POSIX_SEMANTICS*/;
+        info->RootDirectory = nullptr;
+        info->FileNameLength = static_cast<DWORD>(nameBytes);
+        std::memcpy(info->FileName, wto.c_str(), nameBytes);
+        const auto renameInfoEx = static_cast<FILE_INFO_BY_HANDLE_CLASS>(22); // FileRenameInfoEx
+        BOOL ok = SetFileInformationByHandle(h, renameInfoEx, info, static_cast<DWORD>(buf.size()));
+        CloseHandle(h);
+        if (ok) return 0;
+    }
+    // Fallback (older Windows): works when the target is not held open.
+    return MoveFileExW(wfrom.c_str(), wto.c_str(),
                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) ? 0 : -1;
 }
 #else
