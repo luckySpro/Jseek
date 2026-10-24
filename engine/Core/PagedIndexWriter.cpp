@@ -422,7 +422,9 @@ bool PagedIndexWriter::flushDirtyPages(SearchEngine& engine, const IndexMetadata
     }
     if (!pf) return false;
 
+    #ifdef F_NOCACHE
     fcntl(fileno(pf), F_NOCACHE, 1);
+    #endif
 
     if (newFile) {
         uint32_t magic = kPagesMagic;
@@ -497,7 +499,9 @@ bool PagedIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& me
     FILE* pf = fopen(tmpPages.c_str(), "wb");
     if (!pf) return false;
 
+    #ifdef F_NOCACHE
     fcntl(fileno(pf), F_NOCACHE, 1);
+    #endif
 
     // Write pages magic
     uint32_t magic = kPagesMagic;

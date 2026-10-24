@@ -72,6 +72,48 @@ jobs:
           tail -20 engine-tests.log
           exit $status
 
+  engine-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libre2-dev cmake pkg-config
+      - name: Build & test engine
+        working-directory: engine
+        run: |
+          set +e
+          { cmake -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j4; } > build.log 2>&1; status=$?
+          grep -E "error:|Error " build.log | sort -u | head -30 | sed 's/^/::error::/'
+          if [ $status -ne 0 ]; then tail -20 build.log; exit $status; fi
+          ./build/test_all --fast > engine-tests.log 2>&1; status=$?
+          grep -F "[FAIL]" engine-tests.log | sort | uniq -c | head -30 | sed 's/^ *//; s/^/::warning::/'
+          grep -E "Tests (passed|failed):" engine-tests.log | tr '\n' ' ' | sed 's/^/::notice::/'; echo
+          tail -15 engine-tests.log
+          exit $status
+
+  engine-windows:
+    runs-on: windows-latest
+    continue-on-error: true   # M1 in progress: collect errors, then make blocking
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install re2 (vcpkg)
+        shell: bash
+        run: vcpkg install re2:x64-windows-static
+      - name: Build & test engine
+        working-directory: engine
+        shell: bash
+        run: |
+          set +e
+          { cmake -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
+              -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_MSVC_RUNTIME_LIBRARY='MultiThreaded$<$<CONFIG:Debug>:Debug>' \
+            && cmake --build build --config Release -j4; } > build.log 2>&1; status=$?
+          grep -E "error C[0-9]+|fatal error|error LNK" build.log | sed -E 's#^.*[\\/]engine[\\/]##' | sort -u | head -40 | sed 's/^/::error::/'
+          if [ $status -ne 0 ]; then tail -20 build.log; exit $status; fi
+          ./build/Release/test_all.exe --fast > engine-tests.log 2>&1; status=$?
+          grep -F "[FAIL]" engine-tests.log | sort | uniq -c | head -30 | sed 's/^ *//; s/^/::warning::/'
+          grep -E "Tests (passed|failed):" engine-tests.log | tr '\n' ' ' | sed 's/^/::notice::/'; echo
+          tail -15 engine-tests.log
+          exit $status
+
   app:
     needs: lockfiles
     strategy:

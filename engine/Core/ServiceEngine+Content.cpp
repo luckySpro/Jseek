@@ -1,3 +1,4 @@
+#if defined(__APPLE__)
 #include "ServiceEngine.h"
 #include "Logger.h"
 #include <filesystem>
@@ -249,3 +250,4 @@ void ServiceEngine::updateContentForPath(
         }
     }
 }
+#endif // __APPLE__

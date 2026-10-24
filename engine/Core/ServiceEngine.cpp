@@ -1,3 +1,4 @@
+#if defined(__APPLE__)
 #include "ServiceEngine.h"
 #include "DirectoryScanner.h"
 #include "PathUtils.h"
@@ -520,3 +521,4 @@ bool ServiceEngine::pathEndsWithApp(const std::string& path) {
            path[path.size()-4] == '.' && path[path.size()-3] == 'a' &&
            path[path.size()-2] == 'p' && path[path.size()-1] == 'p';
 }
+#endif // __APPLE__

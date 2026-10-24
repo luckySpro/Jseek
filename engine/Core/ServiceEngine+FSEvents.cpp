@@ -1,3 +1,4 @@
+#if defined(__APPLE__)
 #include "ServiceEngine.h"
 #include "DirectoryScanner.h"
 #include "RescanDebounce.h"
@@ -337,3 +338,4 @@ void ServiceEngine::rescanSubtree(const std::string& dir) {
         }
     });
 }
+#endif // __APPLE__

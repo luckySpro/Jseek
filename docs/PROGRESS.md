@@ -15,3 +15,4 @@
 | 2026-10-24 19:13 | M0 ✅ | M0 完成：三平台 CI 全绿（macOS arm64/x64 DMG、Windows x64 NSIS+MSI，核心测试与 clippy 通过）；记录 D-007 | M1：C++ 引擎去 GCD/CoreFoundation 依赖，三平台跑通原有 11,962 个测试 |
 | 2026-10-24 20:25 | M1 | 引擎原样迁入 engine/（含 85 个测试模块与 test_all），CI 新增 macOS 引擎测试作为基线 | 确认 macOS 上 11,962 个测试全过；然后写跨平台层（并行调度、Unicode 小写） |
 | 2026-10-24 20:33 | M1 | 去 GCD/CoreFoundation：新增 Concurrency.h（parallelFor、SerialQueue、RepeatingTimer）与可移植 Unicode 小写；新增 Part 77 测试（本地 ASan/UBSan/TSan 通过，并修复一处等待中的悬垂引用） | 确认 macOS 上 11,962+17 个测试仍全过；然后加 CMake，在 Linux/Windows 编译并跑引擎测试 |
+| 2026-10-24 20:36 | M1 | 可移植扫描器（Linux 用 POSIX，Windows 用 std::filesystem）；Mac 专属模块与测试条件编译；测试辅助函数跨平台；F_NOCACHE 条件化；CMake 构建；CI 新增 engine-linux 与 engine-windows（后者暂不阻塞） | 根据 CI 修复 Linux 编译/测试；收集 Windows 错误清单 |

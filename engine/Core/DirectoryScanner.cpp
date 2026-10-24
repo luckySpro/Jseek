@@ -1,3 +1,5 @@
+#if defined(__APPLE__)
+// macOS scanner: getattrlistbulk, multi-threaded. Other platforms: DirectoryScannerPortable.cpp
 #include "DirectoryScanner.h"
 #include "Logger.h"
 #include <sys/attr.h>
@@ -321,3 +323,4 @@ bool DirectoryScanner::tryVisitDirectory(dev_t dev, uint64_t ino) {
     std::lock_guard<std::mutex> lock(dedupMutex_);
     return visitedDirs_.insert(key).second;
 }
+#endif // __APPLE__

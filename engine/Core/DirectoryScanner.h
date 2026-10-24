@@ -8,6 +8,7 @@
 #include <thread>
 #include <atomic>
 #include <string>
+#include <sys/types.h>
 
 struct InodeKey {
     dev_t dev;

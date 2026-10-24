@@ -1,3 +1,4 @@
+#include "Core/Concurrency.h"
 #pragma once
 // Part 12: Parallel Snippet Generation Tests
 
@@ -55,8 +56,7 @@ static void runParallelSnippetTests() {
     for (int rep = 0; rep < 10; rep++) {
         auto* snippetsBuf = new std::string[NUM_FILES];
         auto* offsetsBuf = new uint32_t[NUM_FILES]();
-        dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
-        dispatch_apply(NUM_FILES, queue, ^(size_t i) {
+        me::parallelFor(NUM_FILES, [&](size_t i) {
             snippetsBuf[i] = ContentIndex::generateSnippet(filePaths[i], keyword, offsetsBuf[i]);
         });
         delete[] snippetsBuf;
@@ -78,8 +78,7 @@ static void runParallelSnippetTests() {
     {
         auto* snippetsBuf = new std::string[NUM_FILES];
         auto* offsetsBuf2 = new uint32_t[NUM_FILES]();
-        dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
-        dispatch_apply(NUM_FILES, queue, ^(size_t i) {
+        me::parallelFor(NUM_FILES, [&](size_t i) {
             snippetsBuf[i] = ContentIndex::generateSnippet(filePaths[i], keyword, offsetsBuf2[i]);
         });
         int validCount = 0;

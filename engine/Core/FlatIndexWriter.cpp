@@ -164,7 +164,9 @@ bool FlatIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& met
     }
 
     // Bypass page cache to avoid evicting hot search data
+    #ifdef F_NOCACHE
     fcntl(fileno(f), F_NOCACHE, 1);
+    #endif
 
     // Write placeholder header + section table (will be filled later)
     Header header{};

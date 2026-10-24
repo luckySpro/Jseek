@@ -70,7 +70,9 @@ bool SearchEngine::saveToFile(const std::string& filePath, const IndexMetadata& 
     if (!f) return false;
 
     // P2: Bypass page cache to avoid evicting hot search data after compaction
+    #ifdef F_NOCACHE
     fcntl(fileno(f), F_NOCACHE, 1);
+    #endif
 
     // Helper to check fwrite return values
     bool writeOk = true;

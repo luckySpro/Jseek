@@ -12,9 +12,15 @@
 #include "Core/ContentIndexPersistence.h"
 #include "Core/FileSystemWatcher.h"
 #include "Core/Logger.h"
+#if !defined(_WIN32)
 #include "Core/InstanceLock.h"
+#endif
+#if !defined(_WIN32)
 #include "Core/HttpServer.h"
+#endif
+#if defined(__APPLE__)
 #include "Core/ServiceEngine.h"
+#endif
 #include "Core/QueryTokenizer.h"
 #include "Core/QueryParser.h"
 #include "Core/QueryFilterParser.h"
@@ -29,12 +35,18 @@
 #include <filesystem>
 #include <fstream>
 #include <fcntl.h>
-#include <unistd.h>
-#include <mach/mach.h>
 #include <sys/stat.h>
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#endif
 #include <cassert>
 #include <set>
+#if defined(__APPLE__)
 #include <dispatch/dispatch.h>
+#endif
 
 namespace fs = std::filesystem;
 
@@ -46,12 +58,18 @@ namespace fs = std::filesystem;
 #include "tests/test_metadata.h"
 #include "tests/test_compaction.h"
 #include "tests/test_ranking.h"
+#if defined(__APPLE__)
 #include "tests/test_fsevents.h"
+#endif
 #include "tests/test_thread_safety.h"
+#if defined(__APPLE__)
 #include "tests/test_e2e.h"
+#endif
 #include "tests/test_wal_crc.h"
 #include "tests/test_compact_content.h"
+#if defined(__APPLE__)
 #include "tests/test_destructor_safety.h"
+#endif
 #include "tests/test_wal_race.h"
 #include "tests/test_save_file.h"
 #include "tests/test_scanner_reentry.h"
@@ -67,14 +85,18 @@ namespace fs = std::filesystem;
 #include "tests/test_query_cancel.h"
 #include "tests/test_critical_high.h"
 #include "tests/test_portable.h"
+#if defined(__APPLE__)
 #include "tests/test_rapid_typing.h"
+#endif
 #include "tests/test_path_table.h"
 #include "tests/test_memory_optimizations.h"
 #include "tests/test_batch_rescan.h"
 #include "tests/test_wal_race_indexpersistence.h"
 #include "tests/test_p2_fixes.h"
 #include "tests/test_logger.h"
+#if !defined(_WIN32)
 #include "tests/test_instance_lock.h"
+#endif
 #include "tests/test_wal_batch_replay.h"
 #include "tests/test_wal_rename_chain.h"
 #include "tests/test_rescan_debounce.h"
@@ -84,10 +106,16 @@ namespace fs = std::filesystem;
 #include "tests/test_content_wal_tracking.h"
 #include "tests/test_content_compact_threshold.h"
 #include "tests/test_content_compaction_guard.h"
+#if defined(__APPLE__)
 #include "tests/test_fswatcher_eventid.h"
+#endif
 #include "tests/test_content_modtime.h"
+#if !defined(_WIN32)
 #include "tests/test_http_engine_swap.h"
+#endif
+#if defined(__APPLE__)
 #include "tests/test_service_engine.h"
+#endif
 #include "tests/test_daemon_startup.h"
 #include "tests/test_wal_inplace_replay.h"
 #include "tests/test_event_driven_compaction.h"
@@ -107,7 +135,9 @@ namespace fs = std::filesystem;
 #include "tests/test_structured_query.h"
 #include "tests/test_query_modifiers.h"
 #include "tests/test_regex_trigram.h"
+#if defined(__APPLE__)
 #include "tests/test_fsevents_batch.h"
+#endif
 #include "tests/test_query_needs_analysis.h"
 #include "tests/test_simd_batch_filter.h"
 #include "tests/test_ast_structured_transform.h"
@@ -122,7 +152,9 @@ namespace fs = std::filesystem;
 #include "tests/test_compiled_glob_evalterm.h"
 #include "tests/test_extension_index.h"
 #include "tests/test_re2_integration.h"
+#if defined(__APPLE__)
 #include "tests/test_fsevents_search_latency.h"
+#endif
 
 // ═══════════════════════════════════════════════════════
 //  Main
@@ -259,11 +291,17 @@ int main(int argc, char* argv[]) {
     if (selectedParts.count("3c")) runIndexMetadataTests();
     if (selectedParts.count("3d")) runCompactionTests();
     if (selectedParts.count("3e")) runSearchRankingTests();
+#if defined(__APPLE__)
     if (selectedParts.count("4"))  runFSEventsTest();
+#endif
     if (selectedParts.count("5"))  runThreadSafetyTest();
+#if defined(__APPLE__)
     if (selectedParts.count("6"))  runEndToEndTest();
+#endif
     if (selectedParts.count("7"))  runCompactContentIndexTest();
+#if defined(__APPLE__)
     if (selectedParts.count("7b")) runDestructorSafetyTest();
+#endif
     if (selectedParts.count("7c")) runWalRaceTest();
     if (selectedParts.count("7d")) runSaveToFileTest();
     if (selectedParts.count("7e")) runScannerReentryTest();
@@ -280,14 +318,18 @@ int main(int argc, char* argv[]) {
     if (selectedParts.count("17")) runQueryCancelTests();
     if (selectedParts.count("18")) runCriticalHighTests();
     if (selectedParts.count("77")) runPortableTests();
+#if defined(__APPLE__)
     if (selectedParts.count("19")) runRapidTypingTest();
+#endif
     if (selectedParts.count("20")) runPathTableTests();
     if (selectedParts.count("21")) runMemoryOptimizationTests();
     if (selectedParts.count("22")) runBatchRescanTests();
     if (selectedParts.count("23")) runWalRaceIndexPersistenceTest();
     if (selectedParts.count("24")) runP2FixTests();
     if (selectedParts.count("25")) runLoggerTests();
+#if !defined(_WIN32)
     if (selectedParts.count("26")) runInstanceLockTests();
+#endif
     if (selectedParts.count("27")) runWalBatchReplayTests();
     if (selectedParts.count("28")) runWalRenameChainTest();
     if (selectedParts.count("29")) runRescanDebounceTests();
@@ -297,10 +339,16 @@ int main(int argc, char* argv[]) {
     if (selectedParts.count("34")) runContentWalTrackingTests();
     if (selectedParts.count("35")) runContentCompactThresholdTests();
     if (selectedParts.count("36")) runContentCompactionGuardTests();
+#if defined(__APPLE__)
     if (selectedParts.count("37")) runFSWatcherEventIdTests();
+#endif
     if (selectedParts.count("38")) runContentModTimeTests();
+#if !defined(_WIN32)
     if (selectedParts.count("39")) runPart39();
+#endif
+#if defined(__APPLE__)
     if (selectedParts.count("40")) runPart40();
+#endif
     if (selectedParts.count("41")) runPart41();
     if (selectedParts.count("42")) runWalInplaceReplayTests();
     if (selectedParts.count("43")) runEventDrivenCompactionTests();
@@ -321,7 +369,9 @@ int main(int argc, char* argv[]) {
     if (selectedParts.count("58")) runStructuredQueryTests();
     if (selectedParts.count("59")) runQueryModifierTests();
     if (selectedParts.count("60")) runRegexTrigramTests();
+#if defined(__APPLE__)
     if (selectedParts.count("61")) runFSEventsBatchTests();
+#endif
     if (selectedParts.count("62")) runQueryNeedsAnalysisTests();
     if (selectedParts.count("63")) runSIMDBatchFilterTests();
     if (selectedParts.count("64")) runASTStructuredTransformTests();
@@ -336,7 +386,9 @@ int main(int argc, char* argv[]) {
     if (selectedParts.count("73")) runCompiledGlobEvaltermTests();
     if (selectedParts.count("74")) runExtensionIndexTests();
     if (selectedParts.count("75")) runRE2IntegrationTests();
+#if defined(__APPLE__)
     if (selectedParts.count("76")) runFSEventsSearchLatencyTest();
+#endif
 
     // ── Final Summary ──
     std::cout << "╔══════════════════════════════════════════╗\n";
