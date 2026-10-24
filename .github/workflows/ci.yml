@@ -84,8 +84,20 @@ jobs:
         shell: bash
         run: |
           set +e
-          pnpm tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} > build.log 2>&1
-          status=$?
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            # WiX parses the publisher as XML: "&" must be escaped for the MSI only,
+            # so the EXE (NSIS) keeps the real company name "M&J Group".
+            pnpm tauri build --target ${{ matrix.target }} --bundles nsis > build.log 2>&1
+            status=$?
+            if [ $status -eq 0 ]; then
+              pnpm tauri build --target ${{ matrix.target }} --bundles msi \
+                --config '{"bundle":{"publisher":"M&amp;J Group"}}' >> build.log 2>&1
+              status=$?
+            fi
+          else
+            pnpm tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} > build.log 2>&1
+            status=$?
+          fi
           # Surface compiler errors as annotations (readable from the Checks API)
           grep -E "^error(\[E[0-9]+\])?:|error TS[0-9]+|ERR_|Error:" build.log | sort -u | head -30 | sed 's/^/::error::/'
           tail -40 build.log
