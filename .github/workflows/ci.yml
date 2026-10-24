@@ -92,7 +92,6 @@ jobs:
 
   engine-windows:
     runs-on: windows-latest
-    continue-on-error: true   # M1 in progress: collect errors, then make blocking
     steps:
       - uses: actions/checkout@v4
       - name: Install re2 (vcpkg)
