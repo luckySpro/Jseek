@@ -76,7 +76,7 @@ bool ContentIndex::hasAllowedExtensionLocked(const std::string& filename) const 
 }
 
 std::string ContentIndex::readFileIfText(const std::string& path, uint64_t maxSize) {
-    FILE* f = fopen(path.c_str(), "rb");
+    FILE* f = me::fopenShared(path.c_str(), "rb");
     if (!f) return {};
 
     fseek(f, 0, SEEK_END);
@@ -144,7 +144,7 @@ std::string ContentIndex::generateSnippet(const std::string& path,
                                            uint32_t contextChars) {
     outOffset = 0;
 
-    FILE* f = fopen(path.c_str(), "rb");
+    FILE* f = me::fopenShared(path.c_str(), "rb");
     if (!f) return {};
 
     fseek(f, 0, SEEK_END);
@@ -600,7 +600,7 @@ bool ContentIndex::saveToFile(const std::string& path) const {
     std::shared_lock lock(mutex_);
 
     std::string tmpPath = path + ".tmp";
-    FILE* f = fopen(tmpPath.c_str(), "wb");
+    FILE* f = me::fopenShared(tmpPath.c_str(), "wb");
     if (!f) return false;
 
     bool ok = true;
@@ -649,7 +649,7 @@ bool ContentIndex::saveToFile(const std::string& path) const {
 }
 
 bool ContentIndex::loadFromFile(const std::string& path) {
-    FILE* f = fopen(path.c_str(), "rb");
+    FILE* f = me::fopenShared(path.c_str(), "rb");
     if (!f) return false;
 
     // Verify magic

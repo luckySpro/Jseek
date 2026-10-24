@@ -195,7 +195,7 @@ bool PagedIndexWriter::deserializePageV5(
 
 bool PagedIndexWriter::writePtable(const IndexMetadata& meta, uint32_t totalRecords) const {
     std::string tmpPath = ptablePath_ + ".tmp";
-    FILE* f = fopen(tmpPath.c_str(), "wb");
+    FILE* f = me::fopenShared(tmpPath.c_str(), "wb");
     if (!f) return false;
 
     bool ok = true;
@@ -262,7 +262,7 @@ bool PagedIndexWriter::writePtable(const IndexMetadata& meta, uint32_t totalReco
 // ─── load ───
 
 bool PagedIndexWriter::load(SearchEngine& engine, IndexMetadata* outMeta) {
-    FILE* ptf = fopen(ptablePath_.c_str(), "rb");
+    FILE* ptf = me::fopenShared(ptablePath_.c_str(), "rb");
     if (!ptf) return false;
 
     // Read ptable header
@@ -322,7 +322,7 @@ bool PagedIndexWriter::load(SearchEngine& engine, IndexMetadata* outMeta) {
     fclose(ptf);
 
     // Read pages file
-    FILE* pf = fopen(pagesPath_.c_str(), "rb");
+    FILE* pf = me::fopenShared(pagesPath_.c_str(), "rb");
     if (!pf) return false;
 
     // Verify pages magic
@@ -414,10 +414,10 @@ bool PagedIndexWriter::flushDirtyPages(SearchEngine& engine, const IndexMetadata
     lowerPathDict_ = engine.lowerPathPoolSnapshot();
 
     // Open pages file for appending (create if not exists)
-    FILE* pf = fopen(pagesPath_.c_str(), "r+b");
+    FILE* pf = me::fopenShared(pagesPath_.c_str(), "r+b");
     bool newFile = false;
     if (!pf) {
-        pf = fopen(pagesPath_.c_str(), "wb");
+        pf = me::fopenShared(pagesPath_.c_str(), "wb");
         newFile = true;
     }
     if (!pf) return false;
@@ -496,7 +496,7 @@ bool PagedIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& me
     lowerPathDict_ = engine.lowerPathPoolSnapshot();
 
     std::string tmpPages = pagesPath_ + ".tmp";
-    FILE* pf = fopen(tmpPages.c_str(), "wb");
+    FILE* pf = me::fopenShared(tmpPages.c_str(), "wb");
     if (!pf) return false;
 
     #ifdef F_NOCACHE

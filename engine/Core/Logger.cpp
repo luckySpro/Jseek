@@ -29,7 +29,7 @@ void Logger::init(const std::string& logDir, LogLevel level) {
     std::filesystem::create_directories(logDir_);
 
     logFilePath_ = logDir_ + "/maceverything.log";
-    file_ = fopen(logFilePath_.c_str(), "a");
+    file_ = me::fopenShared(logFilePath_.c_str(), "a");
     if (!file_) {
         std::cerr << "[Logger] Failed to open log file: " << logFilePath_ << "\n";
         return;
@@ -112,7 +112,7 @@ void Logger::rotateIfNeeded() {
         me::replaceFile(src.c_str(), dst.c_str());
     }
 
-    file_ = fopen(logFilePath_.c_str(), "w");
+    file_ = me::fopenShared(logFilePath_.c_str(), "w");
     if (!file_) {
         std::cerr << "[Logger] Failed to reopen log file after rotation\n";
     }

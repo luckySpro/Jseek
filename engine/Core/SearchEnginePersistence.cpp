@@ -66,7 +66,7 @@ bool SearchEngine::saveToFile(const std::string& filePath, const IndexMetadata& 
     std::shared_lock lock(mutex_);
 
     std::string tmpPath = filePath + ".tmp";
-    FILE* f = fopen(tmpPath.c_str(), "wb");
+    FILE* f = me::fopenShared(tmpPath.c_str(), "wb");
     if (!f) return false;
 
     // P2: Bypass page cache to avoid evicting hot search data after compaction
@@ -148,7 +148,7 @@ bool SearchEngine::saveToFile(const std::string& filePath, uint64_t lastEventId)
 
 // --- Load: supports v1, v2, and v3 ---
 bool SearchEngine::loadFromFile(const std::string& filePath, IndexMetadata* outMetadata) {
-    FILE* f = fopen(filePath.c_str(), "rb");
+    FILE* f = me::fopenShared(filePath.c_str(), "rb");
     if (!f) return false;
 
     // Read & verify magic

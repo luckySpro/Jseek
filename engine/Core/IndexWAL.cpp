@@ -100,8 +100,9 @@ bool IndexWAL::open(const std::string& walPath) {
     if (file_) return false;
 
     path_ = walPath;
-    file_ = fopen(walPath.c_str(), "ab");
+    file_ = me::fopenShared(walPath.c_str(), "ab");
     if (!file_) return false;
+    fseek(file_, 0, SEEK_END); // MSVC: ftell after "ab" open reports 0, not EOF
 
     // H-3: Write magic+version header if this is a new (empty) file
     long pos = ftell(file_);
@@ -184,7 +185,7 @@ bool IndexWAL::append(WALOp op, const std::string& fullPath, const FileRecord& r
 std::vector<WALEntry> IndexWAL::readAll(const std::string& walPath) {
     std::vector<WALEntry> entries;
 
-    FILE* f = fopen(walPath.c_str(), "rb");
+    FILE* f = me::fopenShared(walPath.c_str(), "rb");
     if (!f) return entries;
 
     // H-3: Verify magic+version header

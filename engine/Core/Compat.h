@@ -40,4 +40,9 @@ namespace me {
 /// rename() fails when `to` exists, so this uses MoveFileExW(MOVEFILE_REPLACE_EXISTING).
 /// Returns 0 on success, like rename().
 int replaceFile(const char* from, const char* to);
+
+/// fopen() that (a) takes a UTF-8 path on every platform and (b) on Windows opens with
+/// FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, so an open file can still be
+/// renamed over or replaced — POSIX semantics the WAL compaction relies on.
+FILE* fopenShared(const char* path, const char* mode);
 } // namespace me

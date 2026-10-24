@@ -118,7 +118,8 @@ jobs:
             total_pass=$((total_pass + ${pass:-0})); total_fail=$((total_fail + ${fail:-0}))
             if [ $rc -gt 1 ] || ! grep -q "Tests passed" "part-$p.log"; then
               crashed="$crashed $p"; status=1
-              echo "::warning title=part $p crashed (rc=$rc)::$(tail -3 part-$p.log | tr '\r\n' '  ' | cut -c1-300)"
+              last=$(grep -E "^\s*(──|---|\[|[0-9]+\.)" "part-$p.log" | tail -1 | LC_ALL=C tr -cd '[:print:]' | cut -c1-200)
+              echo "::error::part $p crashed (rc=$rc) after: $last"
             elif [ "${fail:-0}" != 0 ]; then
               failedParts="$failedParts $p"; status=1
               grep -F "[FAIL]" "part-$p.log" | head -5 | sed "s/^/::warning title=part $p::/"

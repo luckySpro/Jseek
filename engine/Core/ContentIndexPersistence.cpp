@@ -17,7 +17,7 @@ bool ContentIndexWAL::open(const std::string& walPath) {
     if (file_) return false;
 
     path_ = walPath;
-    file_ = fopen(walPath.c_str(), "ab");
+    file_ = me::fopenShared(walPath.c_str(), "ab");
     if (!file_) return false;
 
     // H-3: Write magic+version header if this is a new (empty) file
@@ -125,7 +125,7 @@ bool ContentIndexWAL::appendRemove(uint32_t fileIndex) {
 std::vector<ContentIndexWAL::Entry> ContentIndexWAL::readAll(const std::string& walPath) {
     std::vector<Entry> entries;
 
-    FILE* f = fopen(walPath.c_str(), "rb");
+    FILE* f = me::fopenShared(walPath.c_str(), "rb");
     if (!f) return entries;
 
     // H-3: Verify magic+version header

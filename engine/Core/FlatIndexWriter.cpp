@@ -157,7 +157,7 @@ bool FlatIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& met
     auto snap = engine.snapshotForV6();
 
     std::string tmpPath = path_ + ".tmp";
-    FILE* f = fopen(tmpPath.c_str(), "w+b");
+    FILE* f = me::fopenShared(tmpPath.c_str(), "w+b");
     if (!f) {
         LOG_ERROR("FlatIndexWriter", "Cannot open " << tmpPath << " for writing");
         return false;
@@ -333,7 +333,7 @@ bool FlatIndexWriter::fullRewrite(SearchEngine& engine, const IndexMetadata& met
 // ---------------------------------------------------------------------------
 
 bool FlatIndexWriter::load(SearchEngine& engine, IndexMetadata* outMeta) {
-    FILE* f = fopen(path_.c_str(), "rb");
+    FILE* f = me::fopenShared(path_.c_str(), "rb");
     if (!f) return false;
 
     // Read header
