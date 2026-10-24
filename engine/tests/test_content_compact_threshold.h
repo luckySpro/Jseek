@@ -4,7 +4,7 @@
 static void runContentCompactThresholdTests() {
     std::cout << "═══ Part 35: ContentIndexPersistence Compact Threshold Tests ═══\n\n";
 
-    std::string tmpDir = fs::temp_directory_path() / "me_test_ccthreshold";
+    std::string tmpDir = (fs::temp_directory_path() / "me_test_ccthreshold").string();
     fs::remove_all(tmpDir);
     fs::create_directories(tmpDir);
 

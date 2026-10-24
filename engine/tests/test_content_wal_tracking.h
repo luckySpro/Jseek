@@ -4,7 +4,7 @@
 static void runContentWalTrackingTests() {
     std::cout << "═══ Part 34: ContentIndexWAL Tracking Tests ═══\n\n";
 
-    std::string tmpDir = fs::temp_directory_path() / "me_test_cwal_tracking";
+    std::string tmpDir = (fs::temp_directory_path() / "me_test_cwal_tracking").string();
     fs::remove_all(tmpDir);
     fs::create_directories(tmpDir);
 

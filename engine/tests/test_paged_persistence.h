@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Compat.h"
 // Part 32: Paged persistence tests
 // Verifies PagedIndexWriter two-file format (.pages + .ptable):
 //   basic read/write, incremental dirty-page flush, CRC32 integrity,
@@ -424,7 +425,7 @@ static void testPagedCrashRecovery() {
     {
         auto fullSize = fs::file_size(pagesPath);
         // Truncate to half
-        truncate(pagesPath.c_str(), static_cast<off_t>(fullSize / 2));
+        truncate(pagesPath.c_str(), static_cast<long long>(fullSize / 2));
     }
 
     // Load should fail: ptable references data beyond truncated .pages

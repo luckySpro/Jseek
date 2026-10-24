@@ -19,3 +19,4 @@
 | 2026-10-24 20:41 | M1 | 修复：Makefile 加 -I.；GCC 不接受局部变量作默认参数（改 static constexpr）；修正 Windows 报错过滤规则 | 确认 macOS/Linux 引擎测试通过；拿到 Windows 错误清单 |
 | 2026-10-24 20:47 | M1 | Windows 兼容层 Compat.h/.cpp（unistd、fsync、access、localtime_r；replaceFile 用 MoveFileExW 保证原子替换）；修复 u8string、GCC 默认参数；放宽定时器测试 | 看 macOS/Linux 是否全绿；继续处理 Windows 编译错误 |
 | 2026-10-24 20:52 | M1 | Linux 引擎测试全绿（11,910 通过）；Mac 定时器测试已过；新增 Builtins.h（MSVC 的 ctz/prefetch 与 memmem） | 继续处理 Windows 编译错误；复查 Mac 上 batchRescanPrefix 性能测试是否为波动 |
+| 2026-10-24 20:57 | M1 | macOS 11,979 / Linux 11,910 全部通过；Windows 引擎库已能编译。修复 Windows 测试代码：ftruncate/truncate 兼容、fs::path 转字符串、守护进程测试（fork）仅限 POSIX | 继续 Windows：编译通过后看测试结果 |

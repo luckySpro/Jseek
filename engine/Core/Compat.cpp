@@ -19,6 +19,17 @@ std::wstring widen(const char* utf8) {
 }
 } // namespace
 
+int truncate(const char* path, long long len) {
+    HANDLE h = CreateFileW(widen(path).c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                           OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) return -1;
+    LARGE_INTEGER pos;
+    pos.QuadPart = len;
+    bool ok = SetFilePointerEx(h, pos, nullptr, FILE_BEGIN) && SetEndOfFile(h);
+    CloseHandle(h);
+    return ok ? 0 : -1;
+}
+
 int me::replaceFile(const char* from, const char* to) {
     return MoveFileExW(widen(from).c_str(), widen(to).c_str(),
                        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) ? 0 : -1;

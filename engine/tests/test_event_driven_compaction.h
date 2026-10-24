@@ -6,7 +6,7 @@
 static void runEventDrivenCompactionTests() {
     std::cout << "=== Part 43: Event-Driven Content Compaction Tests ===\n\n";
 
-    std::string tmpDir = fs::temp_directory_path() / "me_test_event_compact";
+    std::string tmpDir = (fs::temp_directory_path() / "me_test_event_compact").string();
     fs::remove_all(tmpDir);
     fs::create_directories(tmpDir);
 

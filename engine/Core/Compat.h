@@ -22,6 +22,9 @@ inline int access(const char* path, int mode) { return _access(path, mode); }
 inline struct tm* localtime_r(const time_t* t, struct tm* out) { return localtime_s(out, t) == 0 ? out : nullptr; }
 inline struct tm* gmtime_r(const time_t* t, struct tm* out) { return gmtime_s(out, t) == 0 ? out : nullptr; }
 inline time_t timegm(struct tm* t) { return _mkgmtime(t); }
+inline int ftruncate(int fd, long long len) { return _chsize_s(fd, len) == 0 ? 0 : -1; }
+using off_t_compat = long long;
+int truncate(const char* path, long long len); // implemented in Compat.cpp
 #else
 #include <unistd.h>
 #endif

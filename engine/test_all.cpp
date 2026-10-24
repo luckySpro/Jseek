@@ -116,7 +116,9 @@ namespace fs = std::filesystem;
 #if defined(__APPLE__)
 #include "tests/test_service_engine.h"
 #endif
+#if !defined(_WIN32)
 #include "tests/test_daemon_startup.h"
+#endif
 #include "tests/test_wal_inplace_replay.h"
 #include "tests/test_event_driven_compaction.h"
 #include "tests/test_query_perf.h"
@@ -349,7 +351,9 @@ int main(int argc, char* argv[]) {
 #if defined(__APPLE__)
     if (selectedParts.count("40")) runPart40();
 #endif
+#if !defined(_WIN32)
     if (selectedParts.count("41")) runPart41();
+#endif
     if (selectedParts.count("42")) runWalInplaceReplayTests();
     if (selectedParts.count("43")) runEventDrivenCompactionTests();
     if (selectedParts.count("44")) runQueryPerfBenchmarks();

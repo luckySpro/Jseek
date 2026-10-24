@@ -5,7 +5,7 @@
 static void runContentCompactionGuardTests() {
     std::cout << "═══ Part 36: Content Compaction WAL Guard Tests ═══\n\n";
 
-    std::string tmpDir = fs::temp_directory_path() / "me_test_compaction_guard";
+    std::string tmpDir = (fs::temp_directory_path() / "me_test_compaction_guard").string();
     fs::remove_all(tmpDir);
     fs::create_directories(tmpDir);
 

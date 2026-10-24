@@ -1,6 +1,7 @@
 // tests/test_wal_crc.h — Part 15: WAL CRC32 Integrity & Size Limit Tests
 
 #pragma once
+#include "Core/Compat.h"
 
 inline void runWalCrcTests() {
     std::cout << "╔══════════════════════════════════════════╗\n";
