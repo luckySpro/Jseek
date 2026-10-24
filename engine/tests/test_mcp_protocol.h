@@ -1,4 +1,5 @@
 #pragma once
+#include "Core/Compat.h"
 // Part 49: MCP Protocol Tests
 // Tests the MCP server binary via subprocess stdio communication.
 

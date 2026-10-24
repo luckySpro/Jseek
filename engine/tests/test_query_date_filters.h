@@ -7,7 +7,11 @@
 #include <fstream>
 #include <ctime>
 #include <sys/stat.h>
+#if defined(_WIN32)
+#include "Core/Compat.h"
+#else
 #include <utime.h>
+#endif
 
 // ── Part 57: Query Date Filter Tests ──
 // Tests for Phase 3 date filters: dm:, dc:, datemodified:, datecreated:

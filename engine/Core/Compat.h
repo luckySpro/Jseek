@@ -8,6 +8,12 @@
 #if defined(_WIN32)
 #include <io.h>
 #include <fcntl.h>
+#include <sys/utime.h>
+#include <stdio.h>
+#define popen _popen
+#define pclose _pclose
+#define utime _utime
+#define utimbuf _utimbuf
 #ifndef F_OK
 #define F_OK 0
 #endif
