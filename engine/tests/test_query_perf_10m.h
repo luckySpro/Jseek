@@ -242,7 +242,7 @@ static void runLargeScalePerfBenchmarks() {
                   << "\n";
     };
 
-    const int RUNS = 10; // 10 iterations for stable results at this scale
+    static constexpr int RUNS = 10; // 10 iterations for stable results at this scale (static: usable as a default argument)
 
     std::vector<BenchResult> allResults;
     auto run = [&](const std::string& label, const std::string& keyword,

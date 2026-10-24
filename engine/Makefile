@@ -9,7 +9,7 @@ CORE_SRCS = $(wildcard Core/*.cpp)
 
 .PHONY: test-fast clean
 test_all: test_all.cpp $(CORE_SRCS)
-	$(CXX) $(CXXFLAGS) $(RE2_CFLAGS) $(FRAMEWORKS) $(RE2_LDFLAGS) -ICore $^ -o $@
+	$(CXX) $(CXXFLAGS) $(RE2_CFLAGS) $(FRAMEWORKS) $(RE2_LDFLAGS) -I. -ICore $^ -o $@
 
 test-fast: test_all
 	./test_all --fast

@@ -106,7 +106,7 @@ jobs:
           { cmake -B build -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake" \
               -DVCPKG_TARGET_TRIPLET=x64-windows-static -DCMAKE_MSVC_RUNTIME_LIBRARY='MultiThreaded$<$<CONFIG:Debug>:Debug>' \
             && cmake --build build --config Release -j4; } > build.log 2>&1; status=$?
-          grep -E "error C[0-9]+|fatal error|error LNK" build.log | sed -E 's#^.*[\\/]engine[\\/]##' | sort -u | head -40 | sed 's/^/::error::/'
+          grep -E "error C[0-9]+|fatal error|error LNK" build.log | sed -E 's# \[[^]]*\]\r?$##; s#^.*[\\/]engine[\\/]##' | sort -u | head -40 | sed 's/^/::error::/'
           if [ $status -ne 0 ]; then tail -20 build.log; exit $status; fi
           ./build/Release/test_all.exe --fast > engine-tests.log 2>&1; status=$?
           grep -F "[FAIL]" engine-tests.log | sort | uniq -c | head -30 | sed 's/^ *//; s/^/::warning::/'
