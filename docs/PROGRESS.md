@@ -9,3 +9,4 @@
 | 2026-10-24 18:40 | 规划 | 确认 Windows 只读索引服务（D-005） | 确定新仓库名称并建仓，然后开始 M0 骨架 |
 | 2026-10-24 18:44 | 规划 | 新建仓库 luckySpro/Jseek，迁入方案、决策（含 D-006）与进度日志 | 在 dev 分支开始 M0 骨架：Rust workspace + Tauri 2 + Vue 3，三平台 CI 空壳 |
 | 2026-10-24 18:49 | M0 | 骨架：Rust workspace（jseek-core、jseek-platform）+ Tauri 2 + Vue 3 空壳（暖纸风格、四语种）+ 三平台 CI | 等 CI 结果：修复编译问题，确认 macOS arm64/x64、Windows x64 均产出安装包 |
+| 2026-10-24 18:55 | M0 | CI：macOS arm64/x64 构建成功，锁文件已由 CI 提交；失败时把构建日志尾部写成注释 | 查明并修复 Windows 构建失败 |

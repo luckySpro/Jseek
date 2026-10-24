@@ -89,6 +89,10 @@ jobs:
           # Surface compiler errors as annotations (readable from the Checks API)
           grep -E "^error(\[E[0-9]+\])?:|error TS[0-9]+|ERR_|Error:" build.log | sort -u | head -30 | sed 's/^/::error::/'
           tail -40 build.log
+          if [ $status -ne 0 ]; then
+            # On failure also surface the last lines, whatever their wording
+            tail -15 build.log | sed 's/\r$//; s/^/::warning title=build.log tail::/'
+          fi
           exit $status
       - uses: actions/upload-artifact@v4
         with:
