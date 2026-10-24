@@ -27,3 +27,4 @@
 | 2026-10-24 21:24 | M1 | Windows replaceFile uses POSIX-semantics rename | Check Windows CI parts 28/3c/56 |
 | 2026-10-24 21:30 | M1 | Part 3c portable temp path; CI surfaces FAIL lines | Fix part 56 |
 | 2026-10-24 21:36 | M1 | CI also reports FAIL: lines | Fix part 56 |
+| 2026-10-24 21:42 | M1 | Windows scanner normalizes root to / separators | Make engine-windows blocking |

@@ -191,7 +191,7 @@ static void runQueryFilterTests() {
 
     // ── 56.15 parent: filter ──
     {
-        auto parentPath = (tmpDir / "subdir").string();
+        auto parentPath = (tmpDir / "subdir").generic_string();
         auto r = queryNames("parent:" + parentPath);
         check(contains(r, "nested.cpp"), "56.15a parent: finds direct child");
         check(!contains(r, "buried.h"), "56.15b parent: excludes grandchild");

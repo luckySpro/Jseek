@@ -66,7 +66,14 @@ void DirectoryScanner::scan(const std::string& rootPath) {
 #endif
     LOG_INFO("Scanner", "Scanning from: " << rootPath << " (portable scanner)");
 
+#if defined(_WIN32)
+    // The engine stores paths with '/' separators on every platform.
+    std::string root = rootPath;
+    for (auto& ch : root) if (ch == '\\') ch = '/';
+    workQueue_.push(root);
+#else
     workQueue_.push(rootPath);
+#endif
     std::vector<char> unused;
     while (!workQueue_.empty()) {
         if (cancelled_.load(std::memory_order_relaxed)) break;
