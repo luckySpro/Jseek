@@ -86,12 +86,13 @@ jobs:
           set +e
           if [ "${{ runner.os }}" = "Windows" ]; then
             # WiX parses the publisher as XML: "&" must be escaped for the MSI only,
-            # so the EXE (NSIS) keeps the real company name "M&J Group".
+            # so the EXE (NSIS) keeps the real company name "M&J Group". The override lives in a
+            # file because cmd.exe would split an inline JSON argument at "&".
             pnpm tauri build --target ${{ matrix.target }} --bundles nsis > build.log 2>&1
             status=$?
             if [ $status -eq 0 ]; then
               pnpm tauri build --target ${{ matrix.target }} --bundles msi \
-                --config '{"bundle":{"publisher":"M&amp;J Group"}}' >> build.log 2>&1
+                --config src-tauri/tauri.msi.conf.json >> build.log 2>&1
               status=$?
             fi
           else

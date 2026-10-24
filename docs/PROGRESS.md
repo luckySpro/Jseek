@@ -11,3 +11,4 @@
 | 2026-10-24 18:49 | M0 | 骨架：Rust workspace（jseek-core、jseek-platform）+ Tauri 2 + Vue 3 空壳（暖纸风格、四语种）+ 三平台 CI | 等 CI 结果：修复编译问题，确认 macOS arm64/x64、Windows x64 均产出安装包 |
 | 2026-10-24 18:55 | M0 | CI：macOS arm64/x64 构建成功，锁文件已由 CI 提交；失败时把构建日志尾部写成注释 | 查明并修复 Windows 构建失败 |
 | 2026-10-24 19:01 | M0 | Windows：查明 MSI 失败原因是 WiX 不接受发布者名中的 &，改为 NSIS 用原名、MSI 单独用转义后的名字构建 | 确认三平台 CI 全绿，M0 收尾 |
+| 2026-10-24 19:06 | M0 | Windows NSIS 安装包构建成功；MSI 的发布者覆盖改用配置文件（cmd 会在 & 处截断命令行参数） | 确认 MSI 构建通过，三平台全绿后 M0 收尾 |
