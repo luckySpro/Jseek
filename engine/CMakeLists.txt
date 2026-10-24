@@ -12,7 +12,7 @@ if(NOT re2_FOUND)
 endif()
 find_package(Threads REQUIRED)
 
-file(GLOB ENGINE_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Core/*.cpp)
+file(GLOB ENGINE_SRCS CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/Core/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/Bridge/*.cpp)
 if(NOT APPLE)
   # macOS-only modules (FSEvents watcher, ServiceEngine) compile to empty units elsewhere;
   # HttpServer and InstanceLock use POSIX sockets/flock and are skipped on Windows.
@@ -32,5 +32,8 @@ if(MSVC)
   target_compile_definitions(jseek_engine PUBLIC NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)
 endif()
 
+option(JSEEK_BUILD_TESTS "Build the C++ test suite" ON)
+if(JSEEK_BUILD_TESTS)
 add_executable(test_all test_all.cpp)
 target_link_libraries(test_all PRIVATE jseek_engine)
+endif()

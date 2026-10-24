@@ -29,3 +29,4 @@
 | 2026-10-24 21:36 | M1 | CI also reports FAIL: lines | Fix part 56 |
 | 2026-10-24 21:42 | M1 | Windows scanner normalizes root to / separators | Make engine-windows blocking |
 | 2026-10-24 21:48 | M1 ✅ | Engine portable: macOS 11,979 / Linux 11,910 / Windows 11,894 tests pass, 0 fail; engine-windows now blocking | M2: cxx FFI bridge + Mac scanner into jseek-platform |
+| 2026-10-25 07:57 | M2 | C ABI bridge (engine/Bridge) + jseek-engine crate + jseek CLI + parity tests | Green engine-rust CI |

@@ -90,6 +90,36 @@ jobs:
           tail -15 engine-tests.log
           exit $status
 
+  # M2: Rust bridge over the C++ engine + `jseek` CLI, checked against the 1.9 query results.
+  engine-rust:
+    needs: lockfiles
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with: { components: clippy }
+      - uses: Swatinem/rust-cache@v2
+      - name: Install re2
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then brew install re2 pkg-config
+          else sudo apt-get update && sudo apt-get install -y libre2-dev pkg-config cmake; fi
+      - name: Test bridge (parity with engine 1.9)
+        run: cargo test -p jseek-engine
+      - name: Clippy
+        run: cargo clippy -p jseek-engine --all-targets -- -D warnings
+      - name: CLI smoke test
+        run: |
+          mkdir -p "$RUNNER_TEMP/cli/docs" && echo hi > "$RUNNER_TEMP/cli/docs/report.pdf"
+          cargo run -q -p jseek-engine --bin jseek -- info
+          out=$(cargo run -q -p jseek-engine --bin jseek -- search "ext:pdf" --root "$RUNNER_TEMP/cli")
+          echo "$out"; echo "$out" | grep -q "docs/report.pdf"
+          cargo run -q -p jseek-engine --bin jseek -- index "$RUNNER_TEMP/cli" "$RUNNER_TEMP/cli.idx"
+          cargo run -q -p jseek-engine --bin jseek -- search report --index "$RUNNER_TEMP/cli.idx" --json | grep -q '"kind":"file"'
+
   engine-windows:
     runs-on: windows-latest
     steps:

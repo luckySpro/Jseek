@@ -1,0 +1,17 @@
+[package]
+name = "jseek-engine"
+description = "Safe Rust wrapper over the JSeek C++ search engine, plus the `jseek` CLI."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+build = "build.rs"
+links = "jseek_engine"
+
+[[bin]]
+name = "jseek"
+path = "src/bin/jseek.rs"
+
+[dependencies]
+jseek-core = { path = "../jseek-core" }
+serde_json.workspace = true

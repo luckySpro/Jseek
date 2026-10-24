@@ -1629,6 +1629,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "jseek-engine"
+version = "0.1.0"
+dependencies = [
+ "jseek-core",
+ "serde_json",
+]
+
+[[package]]
 name = "jseek-platform"
 version = "0.1.0"
 dependencies = [

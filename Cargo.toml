@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/jseek-core", "crates/jseek-platform", "app/src-tauri"]
+members = ["crates/jseek-core", "crates/jseek-platform", "crates/jseek-engine", "app/src-tauri"]
 
 [workspace.package]
 version = "0.1.0"
