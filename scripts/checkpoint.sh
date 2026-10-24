@@ -21,7 +21,9 @@ row="| $now | $stage | ${done_msg//|/\\|} | ${next_msg//|/\\|} |"
 echo "$row" >> docs/PROGRESS.md
 
 git add -A
-git commit -q -m "checkpoint($stage): $done_msg" -m "Next: $next_msg"
+args=(-m "checkpoint($stage): $done_msg" -m "Next: $next_msg")
+[[ -n "${CHECKPOINT_TRAILER:-}" ]] && args+=(-m "$CHECKPOINT_TRAILER")
+git commit -q "${args[@]}"
 
 for attempt in 1 2 3; do
   if git push -q origin "HEAD:$branch"; then break; fi

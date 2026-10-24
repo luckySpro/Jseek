@@ -8,3 +8,4 @@
 | 2026-10-24 18:18 | 规划 | 方案补充：常驻托盘、右键控制面板、四语种（1.10/1.11 已在 Mac 版实现） | 等待第 7 节剩余两项拍板（Windows 服务、仓库），然后开始 M0 骨架 |
 | 2026-10-24 18:40 | 规划 | 确认 Windows 只读索引服务（D-005） | 确定新仓库名称并建仓，然后开始 M0 骨架 |
 | 2026-10-24 18:44 | 规划 | 新建仓库 luckySpro/Jseek，迁入方案、决策（含 D-006）与进度日志 | 在 dev 分支开始 M0 骨架：Rust workspace + Tauri 2 + Vue 3，三平台 CI 空壳 |
+| 2026-10-24 18:49 | M0 | 骨架：Rust workspace（jseek-core、jseek-platform）+ Tauri 2 + Vue 3 空壳（暖纸风格、四语种）+ 三平台 CI | 等 CI 结果：修复编译问题，确认 macOS arm64/x64、Windows x64 均产出安装包 |

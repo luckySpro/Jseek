@@ -1,0 +1,21 @@
+[package]
+name = "jseek"
+description = "JSeek — instant file and content search for macOS and Windows"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[lib]
+name = "jseek_app"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde.workspace = true
+serde_json.workspace = true
+jseek-core = { path = "../../crates/jseek-core" }
+jseek-platform = { path = "../../crates/jseek-platform" }
