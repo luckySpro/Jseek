@@ -8,7 +8,7 @@ static void runIndexMetadataTests() {
     std::cout << "  Part 3c: Index Metadata & Version Tests\n";
     std::cout << "========================================\n\n";
 
-    std::string tmpFile = "/tmp/maceverything_meta_test_" + std::to_string(getpid()) + ".bin";
+    std::string tmpFile = (std::filesystem::temp_directory_path() / ("maceverything_meta_test_" + std::to_string(getpid()) + ".bin")).generic_string();
 
     // ── Test 1: Save and load v3 with metadata ──
     std::cout << "  --- Save/Load v3 with metadata ---\n";
@@ -53,9 +53,11 @@ static void runIndexMetadataTests() {
         // Verify record data integrity
         auto res = engine.query("file1");
         check(res.size() == 1, "v3 load: file1 queryable");
-        const auto& r = engine.getRecord(res[0]);
-        check(r.inode == 12345, "v3 load: inode preserved");
-        check(r.devId == 1, "v3 load: devId preserved");
+        if (!res.empty()) {
+            const auto& r = engine.getRecord(res[0]);
+            check(r.inode == 12345, "v3 load: inode preserved");
+            check(r.devId == 1, "v3 load: devId preserved");
+        }
     }
 
     // ── Test 2: Legacy overload (uint64_t lastEventId) still works ──

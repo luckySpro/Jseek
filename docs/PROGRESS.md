@@ -25,3 +25,4 @@
 | 2026-10-24 21:12 | M1 | Windows 引擎与测试已能完整编译链接；测试运行崩溃，CI 改为逐部分运行以定位 | 根据逐部分结果修复 Windows 上崩溃/失败的测试 |
 | 2026-10-24 21:18 | M1 | Windows：新增 fopenShared（UTF-8 路径 + 共享删除，允许替换打开中的 WAL），引擎内 20 处 fopen 全部替换；修复 MSVC 追加模式 ftell 返回 0 导致重开 WAL 时写坏文件头的真实问题 | 确认 Part 28/15 修复；定位 3c、18、30、31、32 崩溃 |
 | 2026-10-24 21:24 | M1 | Windows replaceFile uses POSIX-semantics rename | Check Windows CI parts 28/3c/56 |
+| 2026-10-24 21:30 | M1 | Part 3c portable temp path; CI surfaces FAIL lines | Fix part 56 |

@@ -122,7 +122,7 @@ jobs:
               echo "::error::part $p crashed (rc=$rc) after: $last"
             elif [ "${fail:-0}" != 0 ]; then
               failedParts="$failedParts $p"; status=1
-              grep -F "[FAIL]" "part-$p.log" | head -5 | sed "s/^/::warning title=part $p::/"
+              grep -F "[FAIL]" "part-$p.log" | head -5 | LC_ALL=C tr -cd '[:print:]\n' | sed "s/^ */::error::part $p /"
             fi
           done
           echo "::notice::Tests passed: $total_pass   Tests failed: $total_fail   crashed parts:${crashed:- none}   failing parts:${failedParts:- none}"
