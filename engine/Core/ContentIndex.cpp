@@ -9,8 +9,7 @@
 #include <atomic>
 #include <thread>
 #include <unistd.h>
-#include <dispatch/dispatch.h>
-#include <CoreFoundation/CoreFoundation.h>
+
 
 // --- Magic and version for binary persistence ---
 static constexpr char CONTENT_MAGIC[4] = {'M', 'E', 'C', 'I'};

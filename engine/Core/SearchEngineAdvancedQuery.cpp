@@ -18,7 +18,7 @@
 #include <re2/filtered_re2.h>
 #include <functional>
 #include <thread>
-#include <dispatch/dispatch.h>
+#include "Concurrency.h"
 
 // ---------------------------------------------------------------------------
 // queryAdvanced: evaluate a parsed AST against the record set.
@@ -783,7 +783,7 @@ std::vector<uint32_t> SearchEngine::queryAdvanced(const std::string& input,
             if (numThreads > 32) numThreads = 32;
             size_t chunkSize = (candidateCount + numThreads - 1) / numThreads;
 
-            __block std::vector<std::vector<Match>> threadResults(numThreads);
+            std::vector<std::vector<Match>> threadResults(numThreads);
             uint64_t capturedGen = myGen;
             const uint32_t* candidatesData = candidates.data();
             const auto* astPtr = ast.get();
@@ -800,8 +800,7 @@ std::vector<uint32_t> SearchEngine::queryAdvanced(const std::string& input,
             auto* ptcPtr = perThreadCaches.data();
             const auto& sTerm = scoringTerm;
 
-            dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
-            dispatch_apply(numThreads, queue, ^(size_t t) {
+            me::parallelFor(numThreads, [&](size_t t) {
                 size_t start = t * chunkSize;
                 size_t end = std::min(start + chunkSize, candidateCount);
                 if (start >= end) return;
@@ -894,7 +893,7 @@ std::vector<uint32_t> SearchEngine::queryAdvanced(const std::string& input,
         if (totalSize < 10000) numThreads = 1;
 
         size_t chunkSize = (totalSize + numThreads - 1) / numThreads;
-        __block std::vector<std::vector<Match>> threadResults(numThreads);
+        std::vector<std::vector<Match>> threadResults(numThreads);
 
         uint64_t capturedGen = myGen;
         bool pureFilter = needs.isPureFilter();
@@ -914,8 +913,7 @@ std::vector<uint32_t> SearchEngine::queryAdvanced(const std::string& input,
         auto* ptcPtr = perThreadCaches.data();
         const auto& sTerm = scoringTerm;
 
-        dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
-        dispatch_apply(numThreads, queue, ^(size_t t) {
+        me::parallelFor(numThreads, [&](size_t t) {
             size_t start = t * chunkSize;
             size_t end = std::min(start + chunkSize, totalSize);
             if (start >= end) return;

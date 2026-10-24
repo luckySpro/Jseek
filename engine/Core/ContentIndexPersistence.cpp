@@ -379,17 +379,17 @@ void ContentIndexPersistence::compact(bool force) {
 
 void ContentIndexPersistence::startAutoCompaction(double /*intervalSec*/) {
     stopAutoCompactionAndWait();
-    compactionQueue_ = dispatch_queue_create(
-        "com.maceverything.content.compaction", DISPATCH_QUEUE_SERIAL);
+    compactionQueue_ = std::make_unique<me::SerialQueue>();
     LOG_INFO("ContentIndexPersistence", "Auto-compaction started (event-driven)");
 }
 
 void ContentIndexPersistence::stopAutoCompactionAndWait() {
     if (compactionQueue_) {
-        // Drain any pending work
-        dispatch_sync(compactionQueue_, ^{});
-        dispatch_release(compactionQueue_);
-        compactionQueue_ = nullptr;
+        // Wait for a running compaction; a pending delayed one is dropped
+        // (it was guarded by alive_ anyway).
+        compactionQueue_->cancelPending();
+        compactionQueue_->drain();
+        compactionQueue_.reset();
     }
     compactionScheduled_.store(false, std::memory_order_relaxed);
 }
@@ -406,14 +406,11 @@ void ContentIndexPersistence::scheduleCompaction() {
 
     auto delaySec = kCompactionDelaySec;
     auto alive = alive_;  // prevent use-after-free: block outlives object
-    dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(delaySec * NSEC_PER_SEC)),
-        compactionQueue_,
-        ^{
-            if (!alive->load(std::memory_order_acquire)) return;
-            this->compactionScheduled_.store(false, std::memory_order_relaxed);
-            this->compact();
-        });
+    compactionQueue_->asyncAfter(delaySec, [this, alive] {
+        if (!alive->load(std::memory_order_acquire)) return;
+        this->compactionScheduled_.store(false, std::memory_order_relaxed);
+        this->compact();
+    });
 }
 
 void ContentIndexPersistence::walAppendAdd(uint32_t fileIndex, uint64_t contentHash,

@@ -9,7 +9,6 @@
 #include <cstring>
 #include <thread>
 #include <unordered_set>
-#include <dispatch/dispatch.h>
 
 // ---------------------------------------------------------------------------
 // Match priority

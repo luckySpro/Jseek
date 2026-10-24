@@ -1,4 +1,14 @@
 #pragma once
+#include <cstdint>
+
+#if !defined(__APPLE__)
+// Non-Apple builds: the FSEvents watcher is macOS-only. Change notifications on other
+// platforms come from jseek-platform (Rust). This stand-in keeps IndexPersistence portable.
+class FileSystemWatcher {
+public:
+    uint64_t getLastEventId() const { return 0; }
+};
+#else
 #include <CoreServices/CoreServices.h>
 #include <dispatch/dispatch.h>
 #include <string>
@@ -86,3 +96,5 @@ private:
         const FSEventStreamEventFlags eventFlags[],
         const FSEventStreamEventId eventIds[]);
 };
+
+#endif // __APPLE__

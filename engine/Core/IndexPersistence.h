@@ -9,7 +9,7 @@
 #include <string>
 #include <memory>
 #include <mutex>
-#include <dispatch/dispatch.h>
+#include "Concurrency.h"
 
 /// Orchestrates index persistence: paged base files + WAL + auto-compaction.
 class IndexPersistence {
@@ -81,8 +81,7 @@ private:
     std::string basePath_;   // legacy v3 path (index.bin)
     std::string v6Path_;
     std::string walPath_;
-    dispatch_source_t timer_ = nullptr;
-    dispatch_queue_t  timerQueue_ = nullptr;
+    std::unique_ptr<me::RepeatingTimer> timer_;
     double currentIntervalSec_ = 0;
     mutable std::mutex walMutex_;
 

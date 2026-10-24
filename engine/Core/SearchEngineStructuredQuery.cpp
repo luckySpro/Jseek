@@ -6,7 +6,6 @@
 #include <cstring>
 #include <thread>
 #include <unordered_set>
-#include <dispatch/dispatch.h>
 
 // ---------------------------------------------------------------------------
 // pathSegmentsMatch: check if dirPath satisfies path segment constraints

@@ -1,7 +1,7 @@
 #pragma once
 #include "ContentIndex.h"
 #include "IndexWAL.h" // for IndexWAL::crc32()
-#include <dispatch/dispatch.h>
+#include "Concurrency.h"
 #include <string>
 #include <memory>
 #include <mutex>
@@ -121,7 +121,7 @@ private:
     std::string basePath_;
     std::string walPath_;
     std::mutex walMutex_;
-    dispatch_queue_t compactionQueue_ = nullptr;
+    std::unique_ptr<me::SerialQueue> compactionQueue_;
     std::atomic<bool> compactionScheduled_{false};
     std::shared_ptr<std::atomic<bool>> alive_ = std::make_shared<std::atomic<bool>>(true);
 

@@ -66,6 +66,7 @@ namespace fs = std::filesystem;
 #include "tests/test_recent_cache.h"
 #include "tests/test_query_cancel.h"
 #include "tests/test_critical_high.h"
+#include "tests/test_portable.h"
 #include "tests/test_rapid_typing.h"
 #include "tests/test_path_table.h"
 #include "tests/test_memory_optimizations.h"
@@ -202,7 +203,7 @@ int main(int argc, char* argv[]) {
             return 0;
         } else if (arg == "--fast") {
             explicitSelection = true;
-            selectedParts.insert({"3", "3b", "3c", "3d", "3e", "5", "7", "7b", "7c", "7d", "7e", "7f", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76"});
+            selectedParts.insert({"3", "3b", "3c", "3d", "3e", "5", "7", "7b", "7c", "7d", "7e", "7f", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74", "75", "76", "77"});
         } else if (arg == "--bench") {
             explicitSelection = true;
             selectedParts.insert({"44", "46"});
@@ -278,6 +279,7 @@ int main(int argc, char* argv[]) {
     if (selectedParts.count("16")) runRecentCacheTests();
     if (selectedParts.count("17")) runQueryCancelTests();
     if (selectedParts.count("18")) runCriticalHighTests();
+    if (selectedParts.count("77")) runPortableTests();
     if (selectedParts.count("19")) runRapidTypingTest();
     if (selectedParts.count("20")) runPathTableTests();
     if (selectedParts.count("21")) runMemoryOptimizationTests();

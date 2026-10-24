@@ -1,3 +1,4 @@
+#if defined(__APPLE__)
 #include "FileSystemWatcher.h"
 #include "Logger.h"
 #include <cstring>
@@ -211,3 +212,4 @@ void FileSystemWatcher::fseventsCallback(
         cb();
     }
 }
+#endif // __APPLE__

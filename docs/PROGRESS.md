@@ -14,3 +14,4 @@
 | 2026-10-24 19:06 | M0 | Windows NSIS 安装包构建成功；MSI 的发布者覆盖改用配置文件（cmd 会在 & 处截断命令行参数） | 确认 MSI 构建通过，三平台全绿后 M0 收尾 |
 | 2026-10-24 19:13 | M0 ✅ | M0 完成：三平台 CI 全绿（macOS arm64/x64 DMG、Windows x64 NSIS+MSI，核心测试与 clippy 通过）；记录 D-007 | M1：C++ 引擎去 GCD/CoreFoundation 依赖，三平台跑通原有 11,962 个测试 |
 | 2026-10-24 20:25 | M1 | 引擎原样迁入 engine/（含 85 个测试模块与 test_all），CI 新增 macOS 引擎测试作为基线 | 确认 macOS 上 11,962 个测试全过；然后写跨平台层（并行调度、Unicode 小写） |
+| 2026-10-24 20:33 | M1 | 去 GCD/CoreFoundation：新增 Concurrency.h（parallelFor、SerialQueue、RepeatingTimer）与可移植 Unicode 小写；新增 Part 77 测试（本地 ASan/UBSan/TSan 通过，并修复一处等待中的悬垂引用） | 确认 macOS 上 11,962+17 个测试仍全过；然后加 CMake，在 Linux/Windows 编译并跑引擎测试 |
