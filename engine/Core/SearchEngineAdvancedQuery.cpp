@@ -1,4 +1,5 @@
 #include "SearchEngine.h"
+#include "Builtins.h"
 #include "StringUtils.h"
 #include "QueryParser.h"
 #include "QueryTokenizer.h"
