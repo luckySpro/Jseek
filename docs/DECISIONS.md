@@ -31,3 +31,8 @@
 - **结论**：跨平台版独立为新产品 **JSeek（简搜）**，仓库 `luckySpro/Jseek`；JMacEverything 1.x 继续维护到 JSeek 可替代为止。
 - **原因**：跨平台后不再是 Mac 专属；`SearchEverything` 已有同名产品且含 voidtools 的产品名；JSeek 延续 J 系列、简短、搜索未见同名软件。
 - **分支**：`main` 只放稳定内容；日常开发在 `dev`，checkpoint 脚本拒绝在 `main` 上运行。
+
+## D-007 Windows 安装包的发布者名（2026-10-24）
+- **结论**：NSIS（EXE）使用原名「M&J Group」；MSI 通过 `app/src-tauri/tauri.msi.conf.json` 单独覆盖为 `M&amp;J Group`，CI 中分两次构建。
+- **原因**：WiX 把发布者当 XML 解析，`&` 未转义会报 CNDL0104；内联 JSON 参数在 Windows cmd 中会被 `&` 截断，所以用配置文件。
+- **放弃**：全局把发布者写成转义形式（会污染 EXE 的真实公司名）。
