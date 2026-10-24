@@ -22,3 +22,4 @@
 | 2026-10-24 20:57 | M1 | macOS 11,979 / Linux 11,910 全部通过；Windows 引擎库已能编译。修复 Windows 测试代码：ftruncate/truncate 兼容、fs::path 转字符串、守护进程测试（fork）仅限 POSIX | 继续 Windows：编译通过后看测试结果 |
 | 2026-10-24 21:02 | M1 | Windows：utime/popen/pclose 兼容别名 | 看 Windows 编译是否通过、测试结果如何 |
 | 2026-10-24 21:07 | M1 | Windows：根目录检查改用 std::filesystem；utime 路径转 string | 看 Windows 编译与测试结果 |
+| 2026-10-24 21:12 | M1 | Windows 引擎与测试已能完整编译链接；测试运行崩溃，CI 改为逐部分运行以定位 | 根据逐部分结果修复 Windows 上崩溃/失败的测试 |
