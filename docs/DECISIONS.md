@@ -36,3 +36,8 @@
 - **结论**：NSIS（EXE）使用原名「M&J Group」；MSI 通过 `app/src-tauri/tauri.msi.conf.json` 单独覆盖为 `M&amp;J Group`，CI 中分两次构建。
 - **原因**：WiX 把发布者当 XML 解析，`&` 未转义会报 CNDL0104；内联 JSON 参数在 Windows cmd 中会被 `&` 截断，所以用配置文件。
 - **放弃**：全局把发布者写成转义形式（会污染 EXE 的真实公司名）。
+
+## D-008 Rust 与 C++ 引擎之间用纯 C 接口（2026-10-25）
+- **结论**：桥接层为 `engine/Bridge/jseek_c.h`（纯 C ABI），Rust 侧 `crates/jseek-engine` 做安全封装并提供 `jseek` 命令行；build.rs 直接调用 CMake 与 pkg-config 构建、链接引擎。
+- **原因**：接口只有扫描/加载/保存/搜索几个函数，C ABI 足够；不引入 cxx/cc/cmake 等构建依赖，三平台行为一致，锁文件不变动。
+- **放弃**：计划中的 cxx（对这么小的接口收益不大，且多一层代码生成）。
