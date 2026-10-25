@@ -33,3 +33,4 @@
 | 2026-10-25 07:57 | M2 | Record D-008 (C ABI bridge) | Green engine-rust CI |
 | 2026-10-25 08:04 | M2 | engine-rust surfaces failures as annotations | Fix macOS engine-rust |
 | 2026-10-25 08:09 | M2 | Parity tests use separate fixture dirs | Confirm engine-rust green twice |
+| 2026-10-25 08:14 | M2 ✅ | C bridge + jseek-engine + jseek CLI; parity tests and CLI smoke test green on macOS and Linux | M3: Vue UI rewrite on top of jseek-engine |
