@@ -5,8 +5,9 @@ use jseek_engine::Engine;
 use std::fs;
 use std::path::PathBuf;
 
-fn fixture() -> PathBuf {
-    let root = std::env::temp_dir().join(format!("jseek_parity_{}", std::process::id()));
+/// Each test gets its own folder: tests run in parallel in one process.
+fn fixture(tag: &str) -> PathBuf {
+    let root = std::env::temp_dir().join(format!("jseek_parity_{}_{tag}", std::process::id()));
     let _ = fs::remove_dir_all(&root);
     fs::create_dir_all(root.join("subdir/deep")).unwrap();
     let write = |rel: &str, n: usize| fs::write(root.join(rel), vec![b'x'; n]).unwrap();
@@ -26,7 +27,7 @@ fn names(e: &Engine, q: &str) -> Vec<String> {
 
 #[test]
 fn query_language_matches_engine_1_9() {
-    let root = fixture();
+    let root = fixture("query");
     let mut e = Engine::new();
     assert!(e.scan(&root) >= 9, "scan found the fixture");
 
@@ -70,7 +71,7 @@ fn query_language_matches_engine_1_9() {
 
 #[test]
 fn index_round_trip() {
-    let root = fixture();
+    let root = fixture("roundtrip");
     let mut e = Engine::new();
     e.scan(&root);
     let file = root.join("index.bin");
