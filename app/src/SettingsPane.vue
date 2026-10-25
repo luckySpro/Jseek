@@ -84,6 +84,15 @@ const builtin = (id: string) => ["all", "content"].includes(id);
             <input v-model="draft.hideOnClose" type="checkbox" />
             <span>{{ t("Closing the window keeps JSeek running") }}</span>
           </label>
+          <label class="field check">
+            <input v-model="draft.launchAtLogin" type="checkbox" />
+            <span>{{ t("Start JSeek when I log in") }}</span>
+          </label>
+          <label class="field">
+            <span>{{ t("Global shortcut") }}</span>
+            <input v-model="draft.hotkey" spellcheck="false" placeholder="Alt+Space" />
+            <small>{{ t("Shows or hides JSeek from anywhere, e.g. Alt+Space or CommandOrControl+Shift+K. Leave empty for none.") }}</small>
+          </label>
           <label class="field">
             <span>{{ t("Maximum results") }}</span>
             <input v-model.number="draft.resultLimit" type="number" min="50" max="5000" step="50" />

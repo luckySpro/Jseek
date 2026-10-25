@@ -13,6 +13,7 @@
     "windows": [
       {
         "title": "JSeek",
+        "visible": false,
         "width": 900,
         "height": 620,
         "minWidth": 720,

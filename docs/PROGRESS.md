@@ -35,3 +35,4 @@
 | 2026-10-25 08:09 | M2 | Parity tests use separate fixture dirs | Confirm engine-rust green twice |
 | 2026-10-25 08:14 | M2 ✅ | C bridge + jseek-engine + jseek CLI; parity tests and CLI smoke test green on macOS and Linux | M3: Vue UI rewrite on top of jseek-engine |
 | 2026-10-25 09:01 | M3 | Vue UI (tabs, QUICK, start panel, result/content rows, color cards, keys, settings) + app backend on jseek-engine, static re2 via vcpkg | Green app builds; then tray, global shortcut, autostart |
+| 2026-10-25 09:02 | M3 | Tray/menu-bar icon, global shortcut, launch at login, start hidden; CI fills new lock entries | Green app builds on all 3 targets |

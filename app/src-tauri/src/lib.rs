@@ -2,6 +2,7 @@
 
 mod content;
 mod settings;
+mod shell;
 
 use jseek_core::SearchHit;
 use jseek_engine::Engine;
@@ -23,8 +24,9 @@ struct Status {
     scan_ms: u64,
 }
 
-struct AppState {
+pub(crate) struct AppState {
     engine: RwLock<Engine>,
+    tray: Mutex<Option<shell::TrayItems>>,
     settings: RwLock<Settings>,
     status: Mutex<Status>,
     settings_path: PathBuf,
@@ -89,7 +91,7 @@ fn set_status(app: &AppHandle, st: &AppState, f: impl FnOnce(&mut Status)) {
 }
 
 /// Full scan on a background thread, then swap the new index in and save it.
-fn start_index(app: AppHandle, st: Arc<AppState>) {
+pub(crate) fn start_index(app: AppHandle, st: Arc<AppState>) {
     std::thread::spawn(move || {
         let root = st.settings.read().unwrap().scan_root.clone();
         set_status(&app, &st, |s| {
@@ -135,21 +137,36 @@ fn default_settings() -> Settings {
     Settings::default()
 }
 
+/// Save settings and apply them. Returns problems the user should see (e.g. a taken shortcut).
 #[tauri::command]
-fn save_settings(app: AppHandle, st: Shared, settings: Settings) -> Result<(), String> {
+fn save_settings(app: AppHandle, st: Shared, settings: Settings) -> Result<Vec<String>, String> {
     settings
         .save(&st.settings_path)
         .map_err(|e| e.to_string())?;
-    let root_changed = {
-        let mut cur = st.settings.write().unwrap();
-        let changed = cur.scan_root != settings.scan_root;
-        *cur = settings;
-        changed
-    };
-    if root_changed {
+    let old = std::mem::replace(&mut *st.settings.write().unwrap(), settings.clone());
+    let mut problems = Vec::new();
+    if old.hotkey != settings.hotkey {
+        if let Err(e) = shell::set_hotkey(&app, &settings.hotkey) {
+            problems.push(e);
+        }
+    }
+    if old.launch_at_login != settings.launch_at_login {
+        if let Err(e) = shell::set_autostart(&app, settings.launch_at_login) {
+            problems.push(e);
+        }
+    }
+    if old.scan_root != settings.scan_root {
         start_index(app, st.inner().clone());
     }
-    Ok(())
+    Ok(problems)
+}
+
+/// The UI's resolved language, so the tray menu matches it.
+#[tauri::command]
+fn set_ui_lang(st: Shared, lang: String) {
+    if let Some(t) = st.tray.lock().unwrap().as_ref() {
+        t.set_lang(&lang);
+    }
 }
 
 #[tauri::command]
@@ -262,6 +279,19 @@ fn hide_main(app: AppHandle) {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let app = tauri::Builder::default()
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    if event.state() == tauri_plugin_global_shortcut::ShortcutState::Pressed {
+                        shell::toggle_main(app);
+                    }
+                })
+                .build(),
+        )
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            Some(vec![shell::HIDDEN_FLAG]),
+        ))
         .setup(|app| {
             let cfg = app.path().app_config_dir()?;
             let data = app.path().app_data_dir()?;
@@ -273,6 +303,7 @@ pub fn run() {
             let count = engine.len();
             let st = Arc::new(AppState {
                 engine: RwLock::new(engine),
+                tray: Mutex::new(None),
                 status: Mutex::new(Status {
                     state: if loaded { "ready" } else { "loading" }.into(),
                     count,
@@ -284,8 +315,25 @@ pub fn run() {
                 index_path,
             });
             app.manage(st.clone());
+            let handle = app.handle().clone();
+            match shell::build_tray(&handle) {
+                Ok(items) => *st.tray.lock().unwrap() = Some(items),
+                Err(e) => eprintln!("tray unavailable: {e}"),
+            }
+            let (hotkey, login) = {
+                let s = st.settings.read().unwrap();
+                (s.hotkey.clone(), s.launch_at_login)
+            };
+            if let Err(e) = shell::set_hotkey(&handle, &hotkey) {
+                eprintln!("global shortcut: {e}");
+            }
+            let _ = shell::set_autostart(&handle, login);
+            // The window starts hidden (tauri.conf.json); the login item keeps it in the tray.
+            if !std::env::args().any(|a| a == shell::HIDDEN_FLAG) {
+                shell::show_main(&handle);
+            }
             // Search the saved index right away; refresh it in the background.
-            start_index(app.handle().clone(), st);
+            start_index(handle, st);
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -311,7 +359,8 @@ pub fn run() {
             search,
             open_path,
             reveal_path,
-            hide_main
+            hide_main,
+            set_ui_lang
         ])
         .build(tauri::generate_context!())
         .expect("error while building JSeek");
@@ -320,18 +369,9 @@ pub fn run() {
         // macOS: clicking the Dock icon brings the hidden window back.
         #[cfg(target_os = "macos")]
         if let tauri::RunEvent::Reopen { .. } = event {
-            show_main(app);
+            shell::show_main(app);
         }
         #[cfg(not(target_os = "macos"))]
         let _ = (app, event);
     });
-}
-
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
-fn show_main(app: &AppHandle) {
-    if let Some(w) = app.get_webview_window("main") {
-        let _ = w.show();
-        let _ = w.unminimize();
-        let _ = w.set_focus();
-    }
 }

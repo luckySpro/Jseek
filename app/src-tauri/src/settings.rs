@@ -44,6 +44,18 @@ pub struct Settings {
     pub lang: String,
     pub hide_on_close: bool,
     pub result_limit: u32,
+    /// Global shortcut that shows/hides the window, e.g. "Alt+Space". Empty = none.
+    pub hotkey: String,
+    pub launch_at_login: bool,
+}
+
+pub fn default_hotkey() -> String {
+    if cfg!(target_os = "macos") {
+        "Alt+Space"
+    } else {
+        "Ctrl+Alt+Space"
+    }
+    .into()
 }
 
 fn strs(s: &str) -> Vec<String> {
@@ -107,6 +119,8 @@ impl Default for Settings {
             lang: "system".into(),
             hide_on_close: true,
             result_limit: 500,
+            hotkey: default_hotkey(),
+            launch_at_login: false,
         }
     }
 }

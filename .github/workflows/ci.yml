@@ -30,7 +30,11 @@ jobs:
       - id: gen
         run: |
           created=false
-          if [ ! -f Cargo.lock ]; then cargo generate-lockfile; created=true; fi
+          if [ ! -f Cargo.lock ]; then cargo generate-lockfile; created=true
+          # A new dependency was added without network access: let cargo add the missing entries.
+          elif ! cargo metadata --locked --format-version 1 >/dev/null 2>&1; then
+            cargo metadata --format-version 1 >/dev/null; created=true
+          fi
           if [ ! -f app/pnpm-lock.yaml ]; then (cd app && pnpm install --lockfile-only); created=true; fi
           echo "created=$created" >> "$GITHUB_OUTPUT"
           if [ "$created" = true ] && [ "${{ github.event_name }}" = push ]; then

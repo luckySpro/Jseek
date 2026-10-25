@@ -86,6 +86,9 @@ const table: Record<string, Row> = {
   "No matches.": ["没有匹配的结果。", "沒有符合的結果。", "一致する項目はありません。"],
   "Path copied": ["已复制路径", "已拷貝路徑", "パスをコピーしました"],
   "Could not copy": ["无法复制", "無法拷貝", "コピーできません"],
+  "Start JSeek when I log in": ["登录时启动 JSeek", "登入時啟動 JSeek", "ログイン時に JSeek を起動"],
+  "Global shortcut": ["全局快捷键", "全域快速鍵", "グローバルショートカット"],
+  "Shows or hides JSeek from anywhere, e.g. Alt+Space or CommandOrControl+Shift+K. Leave empty for none.": ["在任何地方显示或隐藏 JSeek，例如 Alt+Space 或 CommandOrControl+Shift+K。留空则不使用。", "在任何地方顯示或隱藏 JSeek，例如 Alt+Space 或 CommandOrControl+Shift+K。留空則不使用。", "どこからでも JSeek を表示／非表示にします（例：Alt+Space、CommandOrControl+Shift+K）。空欄で無効。"],
   "days ago": ["天前", "天前", "日前"],
 };
 

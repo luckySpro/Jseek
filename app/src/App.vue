@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { api, type Hit, type ContentHit, type Settings, type Status, type AppInfo } from "./api";
-import { t, setLang } from "./i18n";
+import { t, setLang, resolved } from "./i18n";
 import { applyTheme, watchSystem } from "./themes";
 import { fmtSize, fmtDate, highlight, badge, terms } from "./format";
 import SettingsPane from "./SettingsPane.vue";
@@ -132,11 +132,13 @@ async function saveSettings(s: Settings) {
   applyLook();
   setLang(s.lang as any);
   if (tabIndex.value >= s.tabs.length) tabIndex.value = 0;
-  await api.saveSettings(s).catch((e) => flash(String(e)));
+  const problems = await api.saveSettings(s).catch((e) => [String(e)]);
+  if (problems.length) flash(problems.join(" · "));
   runSearch();
 }
 
-let unlisten: (() => void) | undefined;
+const unlisteners: (() => void)[] = [];
+watch(resolved, (l) => api.setUiLang(l), { immediate: true });
 onMounted(async () => {
   window.addEventListener("keydown", onKey);
   watchSystem(applyLook);
@@ -144,10 +146,14 @@ onMounted(async () => {
   settings.value = s; status.value = st; info.value = i;
   setLang(s.lang as any);
   applyLook();
-  unlisten = await api.onStatus((x) => { status.value = x; if (x.state === "ready") runSearch(); });
+  unlisteners.push(
+    await api.onStatus((x) => { status.value = x; if (x.state === "ready") runSearch(); }),
+    await api.on("open-settings", () => { showSettings.value = true; }),
+    await api.on("focus-search", () => { input.value?.focus(); input.value?.select(); }),
+  );
   input.value?.focus();
 });
-onBeforeUnmount(() => { window.removeEventListener("keydown", onKey); unlisten?.(); });
+onBeforeUnmount(() => { window.removeEventListener("keydown", onKey); unlisteners.forEach((u) => u()); });
 
 const statusLine = computed(() => {
   const s = status.value;

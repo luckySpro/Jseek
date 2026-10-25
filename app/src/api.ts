@@ -13,6 +13,7 @@ export interface Quick { name: string; query: string }
 export interface Settings {
   scanRoot: string; tabs: Tab[]; quick: Quick[]; contentExts: string[]; contentMaxMb: number;
   theme: string; appearance: "system" | "light" | "dark"; lang: string; hideOnClose: boolean; resultLimit: number;
+  hotkey: string; launchAtLogin: boolean;
 }
 export interface Status { state: "loading" | "indexing" | "ready"; count: number; root: string; indexedAt: number; scanMs: number }
 export interface AppInfo { version: string; platform: string; backend: string }
@@ -21,7 +22,7 @@ export const native = typeof (window as any).__TAURI_INTERNALS__ !== "undefined"
 
 const mockSettings: Settings = {
   scanRoot: "/", contentExts: ["txt", "md", "rs"], contentMaxMb: 4, theme: "paper", appearance: "system",
-  lang: "system", hideOnClose: true, resultLimit: 500,
+  lang: "system", hideOnClose: true, resultLimit: 500, hotkey: "Alt+Space", launchAtLogin: false,
   tabs: [
     { id: "all", name: "All", exts: [], filter: "" },
     { id: "folders", name: "Folders", exts: [], filter: "folder:" },
@@ -37,6 +38,7 @@ async function mock(cmd: string, args?: any): Promise<any> {
     case "app_info": return { version: "dev", platform: "browser", backend: "mock" };
     case "get_status": return { state: "ready", count: 3, root: "/", indexedAt: now, scanMs: 12 };
     case "get_settings": case "default_settings": return structuredClone(mockSettings);
+    case "save_settings": return [];
     case "search":
       if (args.tab === "content") return { hits: [], ms: 1, query: args.query, content: [
         { path: "/Users/me/notes/todo.md", name: "todo.md", dir: "/Users/me/notes", size: 812, modified: now - 3600,
@@ -59,7 +61,8 @@ export const api = {
   status: () => call<Status>("get_status"),
   settings: () => call<Settings>("get_settings"),
   defaults: () => call<Settings>("default_settings"),
-  saveSettings: (settings: Settings) => call<void>("save_settings", { settings }),
+  saveSettings: (settings: Settings) => call<string[]>("save_settings", { settings }),
+  setUiLang: (lang: string) => call<void>("set_ui_lang", { lang }),
   reindex: () => call<void>("reindex"),
   search: (query: string, tab: string) => call<SearchResult>("search", { query, tab }),
   open: (path: string) => call<void>("open_path", { path }),
@@ -67,4 +70,7 @@ export const api = {
   hide: () => call<void>("hide_main"),
   onStatus: (cb: (s: Status) => void) =>
     native ? listen<Status>("status", (e) => cb(e.payload)) : Promise.resolve(() => {}),
+  /** Tray "Settings…" and the global shortcut ask the window to react. */
+  on: (event: "open-settings" | "focus-search", cb: () => void) =>
+    native ? listen(event, () => cb()) : Promise.resolve(() => {}),
 };
