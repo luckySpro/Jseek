@@ -42,3 +42,4 @@
 | 2026-10-25 17:23 | M3 | Ad-hoc sign Mac app + CI signature check | Publish v2.0.0-preview.2 |
 | 2026-10-25 17:31 | M3 | De-flake batchRescanPrefix timing check | Publish v2.0.0-preview.2 |
 | 2026-10-25 17:33 | M3 | Fix settings pane (structuredClone on proxy); QUICK chips as removable tags, same-kind chips replace; scrollable tab row | Publish preview.3 |
+| 2026-10-25 17:33 | M3 | Release notes for preview.3 | Publish preview.3 |
