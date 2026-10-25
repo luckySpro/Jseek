@@ -16,6 +16,13 @@ fn main() {
         .join("../../engine")
         .canonicalize()
         .expect("engine/ directory");
+    // Windows canonical paths start with \\?\, which CMake cannot glob.
+    let engine = PathBuf::from(
+        engine
+            .to_string_lossy()
+            .trim_start_matches(r"\\?\")
+            .to_string(),
+    );
     let out = PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("cmake-build");
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
 
