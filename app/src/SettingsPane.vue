@@ -7,7 +7,9 @@ import { cards } from "./themes";
 const props = defineProps<{ settings: Settings; status: Status | null }>();
 const emit = defineEmits<{ save: [s: Settings]; close: [] }>();
 
-const draft = ref<Settings>(structuredClone(props.settings));
+// JSON copy: structuredClone throws on Vue reactive proxies (that left the pane blank).
+const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
+const draft = ref<Settings>(clone(props.settings));
 const section = ref("general");
 const sections = [
   ["general", "General"], ["index", "Index"], ["tabs", "Tabs"], ["quick", "QUICK"], ["content", "Content search"],
@@ -40,7 +42,7 @@ async function resetDefaults() {
 function save() {
   draft.value.resultLimit = Math.max(50, Math.min(5000, Number(draft.value.resultLimit) || 500));
   draft.value.contentMaxMb = Math.max(1, Math.min(100, Number(draft.value.contentMaxMb) || 4));
-  emit("save", structuredClone(draft.value));
+  emit("save", clone(draft.value));
   emit("close");
 }
 const builtin = (id: string) => ["all", "content"].includes(id);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
-import { api, type Hit, type ContentHit, type Settings, type Status, type AppInfo } from "./api";
+import { api, type Hit, type ContentHit, type Settings, type Status, type AppInfo, type Quick } from "./api";
 import { t, setLang, resolved } from "./i18n";
 import { applyTheme, watchSystem } from "./themes";
 import { fmtSize, fmtDate, highlight, badge, terms } from "./format";
@@ -11,6 +11,9 @@ const status = ref<Status | null>(null);
 const info = ref<AppInfo | null>(null);
 const tabIndex = ref(0);
 const query = ref("");
+/** QUICK filters in use, shown as removable tags in the search box. */
+const active = ref<Quick[]>([]);
+const fullQuery = computed(() => [query.value.trim(), ...active.value.map((q) => q.query)].filter(Boolean).join(" "));
 const hits = ref<Hit[]>([]);
 const content = ref<ContentHit[]>([]);
 const ms = ref(0);
@@ -19,12 +22,13 @@ const showSettings = ref(false);
 const toast = ref("");
 const input = ref<HTMLInputElement | null>(null);
 const list = ref<HTMLElement | null>(null);
+const navEl = ref<HTMLElement | null>(null);
 
 const tabs = computed(() => settings.value?.tabs ?? []);
 const tab = computed(() => tabs.value[tabIndex.value]);
 const isContent = computed(() => tab.value?.id === "content");
 const rowCount = computed(() => (isContent.value ? content.value.length : hits.value.length));
-const words = computed(() => terms(query.value));
+const words = computed(() => terms(fullQuery.value));
 const isMac = navigator.platform.toLowerCase().includes("mac");
 const mod = isMac ? "⌘" : "Ctrl";
 
@@ -33,7 +37,7 @@ let seq = 0;
 let timer: number | undefined;
 async function runSearch() {
   const my = ++seq;
-  const q = query.value;
+  const q = fullQuery.value;
   const id = tab.value?.id ?? "all";
   if (!q.trim() && (id === "all" || id === "content")) {
     hits.value = []; content.value = []; ms.value = 0;
@@ -48,7 +52,7 @@ async function runSearch() {
     if (my === seq) flash(String(e));
   }
 }
-watch([query, tabIndex], () => {
+watch([fullQuery, tabIndex], () => {
   clearTimeout(timer);
   timer = window.setTimeout(runSearch, isContent.value ? 180 : 40);
 });
@@ -68,10 +72,28 @@ async function copy(path?: string) {
   if (!path) return;
   try { await navigator.clipboard.writeText(path); flash(t("Path copied")); } catch { flash(t("Could not copy")); }
 }
-function applyQuick(q: string) {
-  const cur = query.value.trim();
-  query.value = cur.includes(q) ? cur : (cur ? `${cur} ${q}` : q);
+/** Filter kinds a chip uses (dm, size, ext, …); chips of the same kind replace each other. */
+const kinds = (q: string) => new Set(q.split(/\s+/).filter((w) => w.includes(":")).map((w) => w.split(":")[0].replace(/^[!-]/, "").toLowerCase()));
+function isActive(q: Quick) {
+  return active.value.some((a) => a.query === q.query);
+}
+function toggleQuick(q: Quick) {
+  if (isActive(q)) {
+    active.value = active.value.filter((a) => a.query !== q.query);
+  } else {
+    const k = kinds(q.query);
+    active.value = [...active.value.filter((a) => ![...kinds(a.query)].some((x) => k.has(x))), q];
+  }
   input.value?.focus();
+}
+function removeQuick(i: number) {
+  active.value = active.value.filter((_, j) => j !== i);
+  input.value?.focus();
+}
+// Keep the active tab visible when the tab row is wider than the window.
+watch(tabIndex, () => nextTick(() => navEl.value?.querySelector("button.on")?.scrollIntoView({ inline: "nearest", block: "nearest" })));
+function wheelTabs(e: WheelEvent) {
+  if (navEl.value && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { navEl.value.scrollLeft += e.deltaY; e.preventDefault(); }
 }
 function pickTab(i: number) {
   if (i >= 0 && i < tabs.value.length) tabIndex.value = i;
@@ -90,7 +112,7 @@ function onKey(e: KeyboardEvent) {
   }
   if (e.ctrlKey && e.altKey && /^Digit[1-9]$/.test(e.code)) {
     const q = settings.value?.quick[Number(e.code.slice(5)) - 1];
-    if (q) { e.preventDefault(); applyQuick(q.query); }
+    if (q) { e.preventDefault(); toggleQuick(q); }
     return;
   }
   if (cmd && /^[1-9]$/.test(e.key)) { e.preventDefault(); pickTab(Number(e.key) - 1); return; }
@@ -112,7 +134,15 @@ function onKey(e: KeyboardEvent) {
       break;
     case "Escape":
       e.preventDefault();
-      if (query.value) query.value = ""; else api.hide();
+      if (query.value) query.value = "";
+      else if (active.value.length) active.value = [];
+      else api.hide();
+      break;
+    case "Backspace":
+      // Empty box: Backspace removes the last QUICK tag.
+      if (!query.value && active.value.length && document.activeElement === input.value) {
+        e.preventDefault(); active.value = active.value.slice(0, -1);
+      }
       break;
     case "c": case "C": {
       const sel = window.getSelection()?.toString() || (input.value && input.value.selectionStart !== input.value.selectionEnd);
@@ -169,7 +199,7 @@ const statusLine = computed(() => {
   <header class="bar" data-tauri-drag-region>
     <span class="mark" data-tauri-drag-region>◎</span>
     <span class="wordmark" data-tauri-drag-region>JSEEK</span>
-    <nav>
+    <nav ref="navEl" @wheel="wheelTabs">
       <button v-for="(x, i) in tabs" :key="x.id" :class="{ on: i === tabIndex }" :title="`${mod}${i + 1}`" @click="pickTab(i)">
         <b>{{ String(i + 1).padStart(2, "0") }}</b>{{ t(x.name) }}
       </button>
@@ -178,23 +208,26 @@ const statusLine = computed(() => {
   </header>
 
   <main>
-    <div class="searchrow">
+    <div class="searchbox" @click="input?.focus()">
+      <span v-for="(q, i) in active" :key="q.query" class="tag" :title="q.query">
+        {{ t(q.name) }}<button :aria-label="t('Remove')" @click.stop="removeQuick(i)">×</button>
+      </span>
       <input
         ref="input" v-model="query" class="search" spellcheck="false" autocomplete="off"
-        :placeholder="isContent ? t('Search inside files…') : t('Search files and folders…')"
+        :placeholder="active.length ? '' : isContent ? t('Search inside files…') : t('Search files and folders…')"
       />
-      <span v-if="query" class="count">{{ rowCount.toLocaleString() }} · {{ ms.toFixed(1) }} ms</span>
+      <span v-if="fullQuery" class="count">{{ rowCount.toLocaleString() }} · {{ ms.toFixed(1) }} ms</span>
     </div>
     <div class="quick">
       <span class="qlabel">QUICK</span>
-      <button v-for="(q, i) in settings?.quick ?? []" :key="i" :title="`⌃⌥${i + 1} · ${q.query}`" @click="applyQuick(q.query)">
+      <button v-for="(q, i) in settings?.quick ?? []" :key="i" :class="{ on: isActive(q) }" :title="`⌃⌥${i + 1} · ${q.query}`" @click="toggleQuick(q)">
         {{ t(q.name) }}<kbd v-if="i < 9">{{ i + 1 }}</kbd>
       </button>
     </div>
     <div class="rule"></div>
 
     <!-- start panel -->
-    <section v-if="!rowCount && !query.trim()" class="start">
+    <section v-if="!rowCount && !fullQuery" class="start">
       <div class="lead">
         <h1>{{ isContent ? t("Search inside your files") : t("Find anything on your computer") }}</h1>
         <p class="st">
@@ -286,7 +319,11 @@ const statusLine = computed(() => {
 }
 .mark { color: var(--accent); font-weight: 700; }
 .wordmark { font-weight: 800; letter-spacing: 2px; font-size: 12.5px; margin-right: 6px; }
-nav { display: flex; height: 100%; min-width: 0; overflow-x: auto; flex: 1; scrollbar-width: none; }
+nav {
+  display: flex; height: 100%; min-width: 0; overflow-x: auto; flex: 1; scrollbar-width: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+nav::-webkit-scrollbar { display: none; }
 nav button, .gear {
   all: unset; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 0 9px;
   color: var(--header-ink); opacity: .65; font-size: 13px; white-space: nowrap;
@@ -298,13 +335,19 @@ nav button.on b { color: var(--accent); opacity: 1; }
 .gear { font-size: 16px; height: 100%; }
 
 main { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 16px 22px 0; }
-.searchrow { position: relative; }
-.search {
-  width: 100%; font-size: 20px; padding: 10px 120px 10px 14px; border-radius: 6px; color: var(--ink);
-  background: var(--surface); border: 1px solid var(--rule); outline: none;
+.searchbox {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px; padding: 7px 12px; border-radius: 6px; cursor: text;
+  background: var(--surface); border: 1px solid var(--rule);
 }
-.search:focus { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.count { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font: 12px ui-monospace, monospace; color: var(--muted); }
+.searchbox:focus-within { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.search { flex: 1; min-width: 160px; font-size: 20px; padding: 3px 2px; color: var(--ink); background: transparent; border: 0; outline: none; }
+.tag {
+  display: inline-flex; align-items: center; gap: 2px; padding: 2px 4px 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  background: var(--accent); color: #fff; white-space: nowrap;
+}
+.tag button { all: unset; cursor: pointer; width: 18px; text-align: center; border-radius: 50%; opacity: .8; }
+.tag button:hover { opacity: 1; background: rgba(255, 255, 255, .22); }
+.count { flex: none; font: 12px ui-monospace, monospace; color: var(--muted); }
 
 .quick { display: flex; gap: 6px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
 .qlabel { font: 700 10px ui-monospace, monospace; letter-spacing: 1.5px; color: var(--accent); margin-right: 2px; }
@@ -313,6 +356,8 @@ main { flex: 1; display: flex; flex-direction: column; min-height: 0; padding: 1
   background: var(--surface); display: inline-flex; gap: 5px; align-items: center;
 }
 .quick button:hover { border-color: var(--accent); color: var(--accent); }
+.quick button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.quick button.on kbd { color: #fff; opacity: .8; }
 .quick kbd { font: 10px ui-monospace, monospace; color: var(--muted); }
 .rule { margin-top: 12px; border-top: 1.5px solid var(--ink); border-bottom: 1px solid var(--ink); height: 3px; flex: none; }
 
