@@ -265,6 +265,14 @@ jobs:
             tail -15 build.log | sed 's/\r$//; s/^/::warning title=build.log tail::/'
           fi
           exit $status
+      # Apple Silicon refuses to launch code with no signature at all ("damaged"), and Gatekeeper
+      # then offers no "Open Anyway". The app is ad-hoc signed (signingIdentity "-"); check it.
+      - name: Verify macOS signature
+        if: runner.os == 'macOS'
+        run: |
+          app=$(ls -d target/${{ matrix.target }}/release/bundle/macos/*.app | head -1)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -dv "$app" 2>&1 | grep -E "Signature=adhoc|Authority=" 
       - uses: actions/upload-artifact@v4
         with:
           name: jseek-${{ matrix.name }}
