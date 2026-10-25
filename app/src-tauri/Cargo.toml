@@ -19,3 +19,4 @@ serde.workspace = true
 serde_json.workspace = true
 jseek-core = { path = "../../crates/jseek-core" }
 jseek-platform = { path = "../../crates/jseek-platform" }
+jseek-engine = { path = "../../crates/jseek-engine" }

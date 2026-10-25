@@ -56,7 +56,34 @@ fn main() {
     );
     println!("cargo:rustc-link-lib=static=jseek_engine");
 
-    // re2 (and its abseil deps) via pkg-config; JSEEK_RE2_LIBS overrides, e.g. for vcpkg.
+    println!("cargo:rerun-if-env-changed=JSEEK_STATIC_LIB_DIR");
+    // Release builds: link every static library in a vcpkg `lib` folder (re2 + abseil), so the
+    // shipped app does not depend on Homebrew or system copies of re2.
+    if let Ok(dir) = std::env::var("JSEEK_STATIC_LIB_DIR") {
+        println!("cargo:rustc-link-search=native={dir}");
+        let mut libs: Vec<String> = std::fs::read_dir(&dir)
+            .expect("JSEEK_STATIC_LIB_DIR")
+            .filter_map(|e| e.ok())
+            .filter_map(|e| {
+                let f = e.file_name().to_string_lossy().into_owned();
+                if let Some(n) = f.strip_suffix(".lib") {
+                    Some(n.to_string())
+                } else {
+                    f.strip_prefix("lib")
+                        .and_then(|n| n.strip_suffix(".a"))
+                        .map(String::from)
+                }
+            })
+            .collect();
+        libs.sort();
+        for l in libs {
+            println!("cargo:rustc-link-lib=static={l}");
+        }
+        link_system(&target_os);
+        return;
+    }
+
+    // re2 (and its abseil deps) via pkg-config; JSEEK_RE2_LIBS overrides.
     let re2_libs = std::env::var("JSEEK_RE2_LIBS").ok().or_else(|| {
         Command::new("pkg-config")
             .args(["--libs", "re2"])
@@ -78,7 +105,11 @@ fn main() {
         None => println!("cargo:rustc-link-lib=re2"),
     }
 
-    match target_os.as_str() {
+    link_system(&target_os);
+}
+
+fn link_system(target_os: &str) {
+    match target_os {
         "macos" => {
             println!("cargo:rustc-link-lib=c++");
             println!("cargo:rustc-link-lib=framework=CoreServices");
@@ -86,6 +117,11 @@ fn main() {
         "linux" => {
             println!("cargo:rustc-link-lib=stdc++");
             println!("cargo:rustc-link-lib=pthread");
+        }
+        "windows" => {
+            for l in ["dbghelp", "advapi32", "bcrypt"] {
+                println!("cargo:rustc-link-lib={l}");
+            }
         }
         _ => {}
     }

@@ -117,6 +117,11 @@ jobs:
           exit $rc
       - name: Clippy
         run: cargo clippy -p jseek-engine --all-targets -- -D warnings
+      - name: App unit tests (settings, content search)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p app/dist && touch app/dist/index.html
+          cargo test -p jseek --lib
       - name: CLI smoke test
         run: |
           mkdir -p "$RUNNER_TEMP/cli/docs" && echo hi > "$RUNNER_TEMP/cli/docs/report.pdf"
@@ -170,11 +175,43 @@ jobs:
       matrix:
         include:
           - { os: macos-15, target: aarch64-apple-darwin, bundles: "app,dmg", name: macos-arm64 }
-          - { os: macos-15, target: x86_64-apple-darwin, bundles: "app,dmg", name: macos-x64 }
+          - { os: macos-15-intel, target: x86_64-apple-darwin, bundles: "app,dmg", name: macos-x64 }
           - { os: windows-latest, target: x86_64-pc-windows-msvc, bundles: "nsis,msi", name: windows-x64 }
     runs-on: ${{ matrix.os }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      VCPKG_KEEP_ENV_VARS: MACOSX_DEPLOYMENT_TARGET
     steps:
       - uses: actions/checkout@v4
+      - name: Pick vcpkg triplet
+        shell: bash
+        run: |
+          case "${{ matrix.target }}" in
+            aarch64-apple-darwin) t=arm64-osx ;;
+            x86_64-apple-darwin) t=x64-osx ;;
+            *) t=x64-windows-static-md ;;
+          esac
+          echo "TRIPLET=$t" >> "$GITHUB_ENV"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/vcpkg-installed
+          key: vcpkg-re2-${{ matrix.target }}-v1
+      # re2 + abseil as static libraries, so the shipped app needs no Homebrew or DLLs.
+      - name: Build static re2
+        shell: bash
+        run: |
+          root="${VCPKG_INSTALLATION_ROOT:-}"
+          if [ -z "$root" ] || ! ls "$root"/vcpkg* >/dev/null 2>&1; then
+            root="$RUNNER_TEMP/vcpkg"
+            git clone --depth 1 https://github.com/microsoft/vcpkg "$root"
+            if [ "$RUNNER_OS" = Windows ]; then "$root/bootstrap-vcpkg.bat" -disableMetrics; else "$root/bootstrap-vcpkg.sh" -disableMetrics; fi
+          fi
+          inst="$RUNNER_TEMP/vcpkg-installed"
+          "$root/vcpkg" install "re2:$TRIPLET" --x-install-root="$inst"
+          if [ "$RUNNER_OS" = Windows ]; then root=$(cygpath -m "$root"); inst=$(cygpath -m "$inst"); fi
+          echo "JSEEK_STATIC_LIB_DIR=$inst/$TRIPLET/lib" >> "$GITHUB_ENV"
+          echo "JSEEK_CMAKE_ARGS=-DCMAKE_TOOLCHAIN_FILE=$root/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=$TRIPLET -DVCPKG_INSTALLED_DIR=$inst -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDLL -DCMAKE_OSX_DEPLOYMENT_TARGET=13.0" >> "$GITHUB_ENV"
+          ls "$inst/$TRIPLET/lib" | head -50
       - uses: pnpm/action-setup@v4
         with: { version: 10 }
       - uses: actions/setup-node@v4

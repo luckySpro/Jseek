@@ -1613,6 +1613,7 @@ name = "jseek"
 version = "0.1.0"
 dependencies = [
  "jseek-core",
+ "jseek-engine",
  "jseek-platform",
  "serde",
  "serde_json",

@@ -1,26 +1,24 @@
-/* Claude Paper palette (default color card); other cards arrive with M3. */
+/* Default palette (Claude Paper); themes.ts overrides these per color card. */
 :root {
-  --paper: #f0eee6;
-  --surface: #faf9f5;
-  --ink: #1f1e1d;
-  --muted: #73726c;
-  --rule: #dad7cc;
-  --accent: #c9512f;
-  --header: #1f1e1d;
-  --header-ink: #f0eee6;
+  --paper: #f0eee6; --surface: #faf9f5; --ink: #1f1e1d; --muted: #73726c; --rule: #dad7cc;
+  --accent: #c9512f; --header: #1f1e1d; --header-ink: #f0eee6; --hl: #f3d9c9;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #1f1e1d; --surface: #2a2927; --ink: #eceae3; --muted: #9c9a92;
-    --rule: #3b3a37; --accent: #d97757; --header: #141413; --header-ink: #eceae3;
+    --paper: #1f1e1d; --surface: #2a2927; --ink: #eceae3; --muted: #9c9a92; --rule: #3b3a37;
+    --accent: #d97757; --header: #141413; --header-ink: #eceae3; --hl: #5a3426;
     color-scheme: dark;
   }
 }
 * { box-sizing: border-box; }
-html, body, #app { margin: 0; height: 100%; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+#app { height: 100%; display: flex; flex-direction: column; }
 body {
   background: var(--paper);
   color: var(--ink);
   font: 14px/1.45 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Hiragino Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+button, input, select, textarea { font: inherit; }
+::selection { background: var(--hl); }
