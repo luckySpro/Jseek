@@ -38,3 +38,4 @@
 | 2026-10-25 09:02 | M3 | Tray/menu-bar icon, global shortcut, launch at login, start hidden; CI fills new lock entries | Green app builds on all 3 targets |
 | 2026-10-25 09:18 | M3 | Strip Windows verbatim path prefix for CMake | Green Windows app build |
 | 2026-10-25 09:18 | M3 | Strip Windows verbatim path prefix for CMake (actual fix) | Green Windows app build |
+| 2026-10-25 12:14 | M3 | Release job (workflow_dispatch), notes for v2.0.0-preview.1, app version 2.0.0 | Publish v2.0.0-preview.1 |

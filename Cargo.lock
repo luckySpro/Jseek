@@ -1677,7 +1677,7 @@ dependencies = [
 
 [[package]]
 name = "jseek"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "jseek-core",
  "jseek-engine",
@@ -1692,7 +1692,7 @@ dependencies = [
 
 [[package]]
 name = "jseek-core"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "serde",
  "thiserror 2.0.21",
@@ -1700,7 +1700,7 @@ dependencies = [
 
 [[package]]
 name = "jseek-engine"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "jseek-core",
  "serde_json",
@@ -1708,7 +1708,7 @@ dependencies = [
 
 [[package]]
 name = "jseek-platform"
-version = "0.1.0"
+version = "2.0.0"
 dependencies = [
  "jseek-core",
  "thiserror 2.0.21",
