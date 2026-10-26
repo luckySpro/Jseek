@@ -4,13 +4,13 @@ import { api, type Settings, type Status, type Tab } from "./api";
 import { t, languages } from "./i18n";
 import { cards } from "./themes";
 
-const props = defineProps<{ settings: Settings; status: Status | null }>();
+const props = defineProps<{ settings: Settings; status: Status | null; section?: string }>();
 const emit = defineEmits<{ save: [s: Settings]; close: [] }>();
 
 // JSON copy: structuredClone throws on Vue reactive proxies (that left the pane blank).
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 const draft = ref<Settings>(clone(props.settings));
-const section = ref("general");
+const section = ref(props.section ?? "general");
 const sections = [
   ["general", "General"], ["index", "Index"], ["tabs", "Tabs"], ["quick", "QUICK"], ["content", "Content search"],
 ] as const;

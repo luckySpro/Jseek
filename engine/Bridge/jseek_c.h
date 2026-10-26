@@ -34,6 +34,18 @@ uint64_t jseek_engine_count(const jseek_engine* e);
 uint64_t jseek_engine_search(const jseek_engine* e, const char* query, uint32_t limit,
                              jseek_hit_cb cb, void* user);
 
+/* Scan without touching any engine, so searches keep working while it runs. The batch is
+ * consumed by jseek_engine_load_records (one engine in memory, not two). */
+typedef struct jseek_records jseek_records;
+jseek_records* jseek_scan_records(const char* root, uint64_t* out_count);
+void     jseek_engine_load_records(jseek_engine* e, jseek_records* records);
+void     jseek_records_free(jseek_records* records);
+
+/* Give freed memory back to the OS (malloc keeps it otherwise). */
+void     jseek_release_memory(void);
+/* Memory the process uses, as Activity Monitor / Task Manager count it (bytes). */
+uint64_t jseek_memory_footprint(void);
+
 /* Name of the scanning backend compiled in ("getattrlistbulk", "posix", "std::filesystem"). */
 const char* jseek_engine_backend(void);
 

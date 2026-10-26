@@ -3,9 +3,25 @@
 #include "SearchEngine.h"
 #include <string>
 #include <vector>
+#if defined(__APPLE__)
+#include <mach/mach.h>
+#include <malloc/malloc.h>
+#elif defined(_WIN32)
+#include <windows.h>
+#include <psapi.h>
+#include <malloc.h>
+#else
+#include <fstream>
+#include <malloc.h>
+#include <unistd.h>
+#endif
 
 struct jseek_engine {
     SearchEngine engine;
+};
+
+struct jseek_records {
+    std::vector<FileRecord> records;
 };
 
 extern "C" {
@@ -57,6 +73,59 @@ uint64_t jseek_engine_search(const jseek_engine* e, const char* query, uint32_t 
         });
         return n;
     } catch (...) { return 0; }
+}
+
+jseek_records* jseek_scan_records(const char* root, uint64_t* out_count) {
+    if (out_count) *out_count = 0;
+    if (!root) return nullptr;
+    try {
+        DirectoryScanner scanner;
+        scanner.scan(root);
+        auto* r = new jseek_records{scanner.takeResults()};
+        if (out_count) *out_count = r->records.size();
+        return r;
+    } catch (...) { return nullptr; }
+}
+
+void jseek_engine_load_records(jseek_engine* e, jseek_records* r) {
+    if (!r) return;
+    if (e) {
+        try { e->engine.loadRecords(std::move(r->records)); } catch (...) {}
+    }
+    delete r;
+}
+
+void jseek_records_free(jseek_records* r) { delete r; }
+
+void jseek_release_memory(void) {
+#if defined(__APPLE__)
+    malloc_zone_pressure_relief(nullptr, 0);
+#elif defined(_WIN32)
+    _heapmin();
+    HeapCompact(GetProcessHeap(), 0);
+#elif defined(__GLIBC__)
+    malloc_trim(0);
+#endif
+}
+
+uint64_t jseek_memory_footprint(void) {
+#if defined(__APPLE__)
+    task_vm_info_data_t info;
+    mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&info, &count) == KERN_SUCCESS)
+        return info.phys_footprint;
+    return 0;
+#elif defined(_WIN32)
+    PROCESS_MEMORY_COUNTERS_EX pmc{};
+    if (GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+        return pmc.PrivateUsage;
+    return 0;
+#else
+    std::ifstream statm("/proc/self/statm");
+    uint64_t pages = 0, resident = 0;
+    if (statm >> pages >> resident) return resident * (uint64_t)sysconf(_SC_PAGESIZE);
+    return 0;
+#endif
 }
 
 const char* jseek_engine_backend(void) {

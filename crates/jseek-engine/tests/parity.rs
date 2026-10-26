@@ -70,6 +70,19 @@ fn query_language_matches_engine_1_9() {
 }
 
 #[test]
+fn scan_records_then_load_replaces_in_place() {
+    let root = fixture("records");
+    let mut e = Engine::new();
+    let recs = jseek_engine::Records::scan(&root);
+    assert!(recs.len() >= 9);
+    e.load_records(recs);
+    assert!(names(&e, "ext:cpp").iter().any(|n| n == "nested.cpp"));
+    jseek_engine::release_memory();
+    assert!(jseek_engine::memory_footprint() > 0);
+    let _ = fs::remove_dir_all(&root);
+}
+
+#[test]
 fn index_round_trip() {
     let root = fixture("roundtrip");
     let mut e = Engine::new();

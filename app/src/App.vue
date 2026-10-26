@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { api, type Hit, type ContentHit, type Settings, type Status, type AppInfo, type Quick } from "./api";
-import { t, setLang, resolved } from "./i18n";
+import { t, setLang } from "./i18n";
 import { applyTheme, watchSystem } from "./themes";
 import { fmtSize, fmtDate, highlight, badge, terms } from "./format";
 import SettingsPane from "./SettingsPane.vue";
@@ -116,7 +116,7 @@ function onKey(e: KeyboardEvent) {
     return;
   }
   if (cmd && /^[1-9]$/.test(e.key)) { e.preventDefault(); pickTab(Number(e.key) - 1); return; }
-  if (cmd && e.key === ",") { e.preventDefault(); showSettings.value = true; return; }
+  if (cmd && e.key === ",") { e.preventDefault(); settingsSection.value = "general"; showSettings.value = true; return; }
   if (e.key === "Tab" && !e.altKey) {
     e.preventDefault();
     const n = tabs.value.length || 1;
@@ -168,7 +168,8 @@ async function saveSettings(s: Settings) {
 }
 
 const unlisteners: (() => void)[] = [];
-watch(resolved, (l) => api.setUiLang(l), { immediate: true });
+const settingsSection = ref("general");
+const startEl = ref<HTMLElement | null>(null);
 onMounted(async () => {
   window.addEventListener("keydown", onKey);
   watchSystem(applyLook);
@@ -178,8 +179,19 @@ onMounted(async () => {
   applyLook();
   unlisteners.push(
     await api.onStatus((x) => { status.value = x; if (x.state === "ready") runSearch(); }),
-    await api.on("open-settings", () => { showSettings.value = true; }),
+    await api.on("open-settings", () => { settingsSection.value = "general"; showSettings.value = true; }),
     await api.on("focus-search", () => { input.value?.focus(); input.value?.select(); }),
+    // From the menu-bar panel: a Settings section, or the syntax help on the start panel.
+    await api.onTarget((target) => {
+      if (target === "help") {
+        showSettings.value = false; query.value = ""; active.value = [];
+        nextTick(() => startEl.value?.querySelector(".syntax")?.scrollIntoView({ block: "nearest" }));
+      } else {
+        settingsSection.value = target; showSettings.value = true;
+      }
+    }),
+    // Theme / language / toggles changed in the panel.
+    await api.onSettings((s) => { settings.value = s; setLang(s.lang as any); applyLook(); }),
   );
   input.value?.focus();
 });
@@ -204,7 +216,7 @@ const statusLine = computed(() => {
         <b>{{ String(i + 1).padStart(2, "0") }}</b>{{ t(x.name) }}
       </button>
     </nav>
-    <button class="gear" :title="`${t('Settings')} (${mod},)`" :aria-label="t('Settings')" @click="showSettings = true">⚙</button>
+    <button class="gear" :title="`${t('Settings')} (${mod},)`" :aria-label="t('Settings')" @click="settingsSection = 'general'; showSettings = true">⚙</button>
   </header>
 
   <main>
@@ -227,7 +239,7 @@ const statusLine = computed(() => {
     <div class="rule"></div>
 
     <!-- start panel -->
-    <section v-if="!rowCount && !fullQuery" class="start">
+    <section v-if="!rowCount && !fullQuery" ref="startEl" class="start">
       <div class="lead">
         <h1>{{ isContent ? t("Search inside your files") : t("Find anything on your computer") }}</h1>
         <p class="st">
@@ -236,7 +248,7 @@ const statusLine = computed(() => {
         </p>
       </div>
       <div class="grid">
-        <div class="card">
+        <div class="card syntax">
           <h3>{{ t("Syntax") }}</h3>
           <dl>
             <dt>ext:pdf;docx</dt><dd>{{ t("by extension") }}</dd>
@@ -309,7 +321,7 @@ const statusLine = computed(() => {
   </main>
 
   <div v-if="toast" class="toast">{{ toast }}</div>
-  <SettingsPane v-if="showSettings && settings" :settings="settings" :status="status" @save="saveSettings" @close="showSettings = false" />
+  <SettingsPane v-if="showSettings && settings" :settings="settings" :status="status" :section="settingsSection" @save="saveSettings" @close="showSettings = false" />
 </template>
 
 <style scoped>

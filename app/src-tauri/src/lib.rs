@@ -5,7 +5,7 @@ mod settings;
 mod shell;
 
 use jseek_core::SearchHit;
-use jseek_engine::Engine;
+use jseek_engine::{Engine, Records};
 use serde::Serialize;
 use settings::{tab_query, Settings};
 use std::path::PathBuf;
@@ -26,7 +26,6 @@ struct Status {
 
 pub(crate) struct AppState {
     engine: RwLock<Engine>,
-    tray: Mutex<Option<shell::TrayItems>>,
     settings: RwLock<Settings>,
     status: Mutex<Status>,
     settings_path: PathBuf,
@@ -99,11 +98,17 @@ pub(crate) fn start_index(app: AppHandle, st: Arc<AppState>) {
             s.root = root.clone();
         });
         let t = Instant::now();
-        let mut fresh = Engine::new();
-        let count = fresh.scan(&root);
+        // Scan into a plain record batch while searches keep using the current index, then load
+        // it into the same engine: one index in memory instead of two (as 1.x did).
+        let records = Records::scan(&root);
+        let count = {
+            let mut engine = st.engine.write().unwrap();
+            engine.load_records(records);
+            engine.len()
+        };
         let _ = std::fs::create_dir_all(st.index_path.parent().unwrap());
-        fresh.save(&st.index_path);
-        *st.engine.write().unwrap() = fresh;
+        st.engine.read().unwrap().save(&st.index_path);
+        jseek_engine::release_memory();
         set_status(&app, &st, |s| {
             s.state = "ready".into();
             s.count = count;
@@ -155,18 +160,59 @@ fn save_settings(app: AppHandle, st: Shared, settings: Settings) -> Result<Vec<S
             problems.push(e);
         }
     }
+    // Both windows (main and the menu-bar panel) follow theme/language changes.
+    let _ = app.emit("settings-changed", settings.clone());
     if old.scan_root != settings.scan_root {
         start_index(app, st.inner().clone());
     }
     Ok(problems)
 }
 
-/// The UI's resolved language, so the tray menu matches it.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct PanelState {
+    status: Status,
+    memory: u64,
+    window_visible: bool,
+    version: String,
+}
+
+/// Everything the menu-bar panel shows in its header and rows.
 #[tauri::command]
-fn set_ui_lang(st: Shared, lang: String) {
-    if let Some(t) = st.tray.lock().unwrap().as_ref() {
-        t.set_lang(&lang);
+fn panel_state(app: AppHandle, st: Shared) -> PanelState {
+    PanelState {
+        status: st.status.lock().unwrap().clone(),
+        memory: jseek_engine::memory_footprint(),
+        window_visible: app
+            .get_webview_window("main")
+            .and_then(|w| w.is_visible().ok())
+            .unwrap_or(false),
+        version: env!("CARGO_PKG_VERSION").to_string(),
     }
+}
+
+#[tauri::command]
+fn toggle_main(app: AppHandle) {
+    shell::hide_panel(&app);
+    shell::toggle_main(&app);
+}
+
+/// Open the main window on a Settings section ("general", "content", …) or the syntax help.
+#[tauri::command]
+fn open_main_at(app: AppHandle, target: String) {
+    shell::hide_panel(&app);
+    shell::show_main(&app);
+    let _ = app.emit("open-target", target);
+}
+
+#[tauri::command]
+fn hide_panel(app: AppHandle) {
+    shell::hide_panel(&app);
+}
+
+#[tauri::command]
+fn quit_app(app: AppHandle) {
+    app.exit(0);
 }
 
 #[tauri::command]
@@ -303,7 +349,6 @@ pub fn run() {
             let count = engine.len();
             let st = Arc::new(AppState {
                 engine: RwLock::new(engine),
-                tray: Mutex::new(None),
                 status: Mutex::new(Status {
                     state: if loaded { "ready" } else { "loading" }.into(),
                     count,
@@ -316,9 +361,8 @@ pub fn run() {
             });
             app.manage(st.clone());
             let handle = app.handle().clone();
-            match shell::build_tray(&handle) {
-                Ok(items) => *st.tray.lock().unwrap() = Some(items),
-                Err(e) => eprintln!("tray unavailable: {e}"),
+            if let Err(e) = shell::build_tray(&handle) {
+                eprintln!("tray unavailable: {e}");
             }
             let (hotkey, login) = {
                 let s = st.settings.read().unwrap();
@@ -360,7 +404,11 @@ pub fn run() {
             open_path,
             reveal_path,
             hide_main,
-            set_ui_lang
+            panel_state,
+            toggle_main,
+            open_main_at,
+            hide_panel,
+            quit_app
         ])
         .build(tauri::generate_context!())
         .expect("error while building JSeek");
